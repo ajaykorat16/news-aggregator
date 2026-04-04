@@ -21,6 +21,8 @@
         <server name="KERNEL_CLASS" value="App\Kernel" />
         <!-- Direct DB connection for tests (bypass pgbouncer); Doctrine adds _test suffix -->
         <server name="DATABASE_URL" value="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17&amp;charset=utf8" force="true" />
+        <!-- Panther Chrome args for Docker container (no sandbox, ignore self-signed cert) -->
+        <server name="PANTHER_CHROME_ARGUMENTS" value="--no-sandbox --disable-gpu --ignore-certificate-errors --disable-dev-shm-usage --headless" />
     </php>
 
     <testsuites>

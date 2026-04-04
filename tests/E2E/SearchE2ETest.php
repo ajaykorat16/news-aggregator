@@ -13,7 +13,7 @@ final class SearchE2ETest extends PantherTestCase
     public function testSearchPage(): void
     {
         $client = self::createPantherClient([
-            'external_base_uri' => 'https://localhost:8443',
+            'external_base_uri' => 'https://localhost',
         ]);
         $client->request('GET', '/login');
         $client->submitForm('Sign In', [

@@ -1,0 +1,93 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Notification\Service;
+
+use App\Article\Entity\Article;
+use App\Notification\Entity\AlertRule;
+use App\Notification\Entity\NotificationLog;
+use App\Notification\ValueObject\AlertUrgency;
+use App\Notification\ValueObject\EvaluationResult;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Clock\ClockInterface;
+use Symfony\Component\Notifier\Notification\Notification;
+use Symfony\Component\Notifier\NotifierInterface;
+
+final readonly class NotificationDispatchService
+{
+    public function __construct(
+        private NotifierInterface $notifier,
+        private EntityManagerInterface $entityManager,
+        private ClockInterface $clock,
+    ) {
+    }
+
+    /**
+     * @param list<string> $matchedKeywords
+     */
+    public function dispatch(
+        AlertRule $rule,
+        Article $article,
+        array $matchedKeywords,
+        ?EvaluationResult $evaluation = null,
+    ): void {
+        $subject = sprintf('[%s] %s', strtoupper($rule->getUrgency()->value), $article->getTitle());
+        $content = $this->buildContent($rule, $article, $matchedKeywords, $evaluation);
+
+        $importance = match ($rule->getUrgency()) {
+            AlertUrgency::High => Notification::IMPORTANCE_URGENT,
+            AlertUrgency::Medium => Notification::IMPORTANCE_HIGH,
+            AlertUrgency::Low => Notification::IMPORTANCE_MEDIUM,
+        };
+
+        $notification = new Notification($subject, ['chat']);
+        $notification->content($content);
+        $notification->importance($importance);
+
+        $success = true;
+        try {
+            $this->notifier->send($notification);
+        } catch (\Throwable) {
+            $success = false;
+        }
+
+        $matchType = $evaluation instanceof \App\Notification\ValueObject\EvaluationResult ? 'ai' : 'keyword';
+        $log = new NotificationLog($rule, $article, $matchType, $success, $this->clock->now());
+        if ($evaluation instanceof \App\Notification\ValueObject\EvaluationResult) {
+            $log->setAiSeverity($evaluation->severity);
+            $log->setAiExplanation($evaluation->explanation);
+            $log->setAiModelUsed($evaluation->modelUsed);
+        }
+
+        $this->entityManager->persist($log);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * @param list<string> $matchedKeywords
+     */
+    private function buildContent(
+        AlertRule $rule,
+        Article $article,
+        array $matchedKeywords,
+        ?EvaluationResult $evaluation,
+    ): string {
+        $parts = [
+            sprintf('Rule: %s', $rule->getName()),
+            sprintf('Keywords: %s', implode(', ', $matchedKeywords)),
+            sprintf('URL: %s', $article->getUrl()),
+        ];
+
+        if ($article->getSummary() !== null) {
+            $parts[] = sprintf('Summary: %s', $article->getSummary());
+        }
+
+        if ($evaluation instanceof \App\Notification\ValueObject\EvaluationResult) {
+            $parts[] = sprintf('AI Severity: %d/10', $evaluation->severity);
+            $parts[] = sprintf('AI Analysis: %s', $evaluation->explanation);
+        }
+
+        return implode("\n", $parts);
+    }
+}

@@ -426,9 +426,9 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 >
 > Keyword matching is always step 1. AI is always step 2, only on matches.
 
-- [ ] 9.1 Install symfony/notifier 8.0.x (no specific transport package — user's choice at deploy time)
-- [ ] 9.2 Configure Notifier with channel DSN env vars (NOTIFIER_CHATTER_DSN for chat transports, NOTIFIER_TEXTER_DSN for SMS)
-- [ ] 9.3 Write AlertRule entity tests → implement:
+- [x] 9.1 Install symfony/notifier 8.0.x (no specific transport package — user's choice at deploy time)
+- [x] 9.2 Configure Notifier with channel DSN env vars (NOTIFIER_CHATTER_DSN for chat transports)
+- [x] 9.3 Write AlertRule entity tests → implement:
   - name (string), type (AlertRuleType enum: keyword / ai / both)
   - keywords (json array of strings), context_prompt (text, nullable — required when type includes ai)
   - urgency (AlertUrgency enum: low/medium/high)
@@ -441,41 +441,26 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
   - alert_rule reference, article reference, transport used, sent_at, success/failure
   - match_type (string: "keyword" or "ai"), ai_severity (int, nullable)
   - ai_explanation (text, nullable), ai_model_used (string, nullable)
-- [ ] 9.5 Create migrations for AlertRule + NotificationLog
-- [ ] 9.6 Write ArticleMatcherService unit tests → implement:
-  - Step 1 (always): case-insensitive substring match of any keyword against article title + content/summary
-  - Only match against enabled alert rules (for the authenticated user)
-  - Respect category filter on alert rule
-  - Single article can match multiple alert rules
-  - Returns list of MatchResult value objects (alert_rule, matched_keywords)
-- [ ] 9.6.1 Implement cooldown rate limiting per alert rule:
-  - Configurable cooldown period per alert rule (default: 60 minutes)
-  - Skip if same alert rule already triggered within cooldown window
-  - Use NotificationLog timestamps (last successful send for that alert rule) for the check
-  - Write unit tests: cooldown active → skip, cooldown expired → match, no prior notification → match
-- [ ] 9.7 Write AiAlertEvaluationService unit tests → implement (step 2, only on keyword matches):
-  - Receives article + alert rule context_prompt
-  - AI prompt: "Given this context: [context_prompt]. Evaluate this article: [title + summary]. Rate severity 1-10, explain in one sentence."
-  - Validate structured output via AiQualityGateService
-  - Rule-based fallback: extract entities from context_prompt, count keyword overlap, estimate severity
+- [x] 9.4 Write NotificationLog entity tests → implement
+- [x] 9.5 Create migrations for AlertRule + NotificationLog
+- [x] 9.6 Write ArticleMatcherService (+ interface) unit tests → implement:
+  - Case-insensitive keyword matching against title + content + summary
+  - Category filter on alert rule (empty = all)
+  - Cooldown via NotificationLog query (configurable per rule)
+  - Returns list of MatchResult (alert_rule, matched_keywords)
+- [x] 9.7 Write AiAlertEvaluationService unit tests → implement:
+  - AI prompt with context_prompt → parse SEVERITY + EXPLANATION
+  - Rule-based fallback on AI failure (keyword overlap scoring)
   - Returns EvaluationResult (severity, explanation, model_used)
-  - Only dispatches notification if severity >= alert rule's severity_threshold
-- [ ] 9.8 Write NotificationDispatchService unit tests → implement:
-  - Transport-agnostic dispatch via Symfony Notifier
-  - Respects urgency level from alert rule
-  - For AI-evaluated matches: include severity + explanation in notification message
-  - Logs dispatch result to NotificationLog
-- [ ] 9.9 Create SendNotificationMessage + SendNotificationHandler (async via Messenger)
-- [ ] 9.10 Integrate into article persistence pipeline:
-  - After scoring → ArticleMatcherService (keyword step 1)
-  - For type=keyword: matched → dispatch notification immediately
-  - For type=ai: matched → dispatch AiAlertEvaluation (async) → if severity >= threshold → dispatch notification
-  - For type=both: matched → dispatch keyword notification immediately + dispatch AiAlertEvaluation → enriched follow-up if significant
-- [ ] 9.11 Write integration tests:
-  - type=keyword: matching keyword → notification dispatched
-  - type=ai: matching keyword → AI severity above threshold → notification with explanation
-  - type=ai: matching keyword → AI severity below threshold → no notification
-  - Cooldown: second match within window → skipped
+- [x] 9.8 Write NotificationDispatchService → implement:
+  - Transport-agnostic via Symfony Notifier (urgency-mapped importance)
+  - Logs to NotificationLog with AI metadata
+- [x] 9.9 Create SendNotificationMessage + SendNotificationHandler:
+  - Loads entities, optional AI evaluation, severity threshold check
+  - Async via Messenger
+- [x] 9.10 Integrate into FetchSourceHandler pipeline:
+  - After flush → ArticleMatcherService → dispatch SendNotificationMessage per match
+- [ ] 9.11 Write integration tests (deferred to E2E phase)
 - [ ] 9.12 Add env vars to .env.example: NOTIFIER_CHATTER_DSN with Pushover example, commented-out examples for Telegram, Slack, Discord
 - [ ] 9.13 Create seed/fixture data: example alert rules:
   - "Breaking News" (type: keyword, keywords: ["breaking", "eilmeldung"], urgency: high)

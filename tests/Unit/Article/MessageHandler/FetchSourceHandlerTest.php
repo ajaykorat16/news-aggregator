@@ -10,6 +10,7 @@ use App\Article\Service\DeduplicationServiceInterface;
 use App\Article\Service\ScoringServiceInterface;
 use App\Enrichment\Service\CategorizationServiceInterface;
 use App\Enrichment\Service\SummarizationServiceInterface;
+use App\Notification\Service\ArticleMatcherServiceInterface;
 use App\Shared\Entity\Category;
 use App\Shared\ValueObject\EnrichmentMethod;
 use App\Source\Entity\Source;
@@ -26,6 +27,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[CoversClass(FetchSourceHandler::class)]
 final class FetchSourceHandlerTest extends TestCase
@@ -84,6 +86,8 @@ final class FetchSourceHandlerTest extends TestCase
             $categorization,
             $summarization,
             $this->createStub(ScoringServiceInterface::class),
+            $this->createStub(ArticleMatcherServiceInterface::class),
+            $this->createStub(MessageBusInterface::class),
             $this->clock,
             new NullLogger(),
         );

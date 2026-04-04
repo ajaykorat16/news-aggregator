@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (ContainerConfigurator $container): void {
     $services = $container->services();
@@ -17,9 +18,41 @@ return static function (ContainerConfigurator $container): void {
     $services->load('App\\', '../src/')
         ->exclude([
             '../src/Entity/',
+            '../src/*/Entity/',
             '../src/Kernel.php',
         ]);
 
     // Add more service definitions when explicit configuration is needed.
     // Note that last definitions always *replace* previous ones.
+
+    // AI implementations as defaults — they fall back to rule-based internally on failure.
+    $services->alias(
+        \App\Enrichment\Service\CategorizationServiceInterface::class,
+        \App\Enrichment\Service\AiCategorizationService::class,
+    );
+
+    $services->alias(
+        \App\Enrichment\Service\SummarizationServiceInterface::class,
+        \App\Enrichment\Service\AiSummarizationService::class,
+    );
+
+    $services->alias(
+        \App\Article\Service\DeduplicationServiceInterface::class,
+        \App\Article\Service\AiDeduplicationService::class,
+    );
+
+    // Wire OpenRouter platform for AI services
+    $services->set(\App\Enrichment\Service\AiCategorizationService::class)
+        ->arg('$platform', service('ai.platform.openrouter'));
+
+    $services->set(\App\Enrichment\Service\AiSummarizationService::class)
+        ->arg('$platform', service('ai.platform.openrouter'));
+
+    $services->set(\App\Article\Service\AiDeduplicationService::class)
+        ->arg('$ruleBasedFallback', service(\App\Article\Service\DeduplicationService::class))
+        ->arg('$platform', service('ai.platform.openrouter'));
+
+    // Wire OPENROUTER_BLOCKED_MODELS env var for ModelDiscoveryService
+    $services->set(\App\Shared\AI\Service\ModelDiscoveryService::class)
+        ->arg('$blockedModels', '%env(default::OPENROUTER_BLOCKED_MODELS)%');
 };

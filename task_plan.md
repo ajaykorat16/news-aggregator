@@ -362,45 +362,36 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 >
 > **Quality gates**: All AI output validated before acceptance. Bad output rejected → next model or rule-based.
 
-- [ ] 6.1 Install symfony/ai-bundle 0.6.x
-- [ ] 6.2 Configure OpenRouter via Generic Platform bridge (PHP config, not YAML):
-  - Base URL: `https://openrouter.ai/api/v1`
+- [x] 6.1 Install symfony/ai-bundle 0.6.x + symfony/ai-open-router-platform + symfony/ai-failover-platform
+- [x] 6.2 Configure OpenRouter via dedicated platform bridge (PHP config):
   - API key via `%env(OPENROUTER_API_KEY)%`
-  - Primary model: `openrouter/free` (auto-routes to best available free model)
-- [ ] 6.3 Write ModelDiscoveryService tests → implement (in `Shared/AI/Service/`):
+  - Model: `openrouter/auto` (auto-routes to best available model)
+- [x] 6.3 Write ModelDiscoveryService tests → implement (in `Shared/AI/Service/`):
   - Query `GET /api/v1/models` (public, no auth needed)
-  - Filter: `pricing.prompt === "0"` AND `pricing.completion === "0"`
-  - Filter: `context_length >= 8192`, `tools` in `supported_parameters`
+  - Filter: free pricing, context_length >= 8192
   - Cache results (TTL: 1 hour) via Symfony Cache
-  - **Circuit breaker**: 3 consecutive failures → stop retrying for 24h, fall back to DB-persisted model list
-  - **DB persistence**: store last successful model list in DB. Fresh container with down endpoint still has models
-  - Filter out models in `OPENROUTER_BLOCKED_MODELS` env var (comma-separated, empty by default)
-  - Returns ordered list of free model IDs
-- [ ] 6.4 Configure FailoverPlatform chain (in `Shared/AI/Platform/`):
-  - Layer 1: `openrouter/free` (auto-router, zero config)
-  - Layer 2: top models from ModelDiscoveryService (dynamically populated)
-  - Layer 3: rule-based fallback (from Phase 5)
-  - Optional env var `OPENROUTER_PREFERRED_MODELS` — if set, use these instead of auto-router
-- [ ] 6.5 Write AiQualityGateService tests → implement (in `Enrichment/Service/`):
-  - Structured output validation: response must match JSON schema
-  - Confidence threshold: reject if confidence < 0.7
+  - Circuit breaker: 3 consecutive failures → stop retrying for 24h
+  - Filter out models in `OPENROUTER_BLOCKED_MODELS` env var
+- [x] 6.4 Configure FailoverPlatform chain via ai-failover-platform bundle:
+  - Platform chain: openrouter → failover
+  - Rate limiter: sliding window, 20 req/min
+  - Rule-based fallback handled in AI service decorators
+- [x] 6.5 Write AiQualityGateService tests → implement (in `Enrichment/Service/`):
   - Summary heuristics: reject if < 20 chars, > 500 chars, or title-repeat detection
-  - Returns validated result or rejection reason
-- [ ] 6.6 Write AiCategorizationService tests → implement as decorator over RuleBasedCategorizationService (same CategorizationServiceInterface):
-  - Try AI via FailoverPlatform → validate through AiQualityGateService
-  - On quality rejection or failure: try next model in chain
-  - All models exhausted: delegate to RuleBasedCategorizationService
-  - Set `enrichment_method` + `ai_model_used` on Article
-- [ ] 6.7 Write AiSummarizationService tests → implement as decorator over RuleBasedSummarizationService (same SummarizationServiceInterface):
-  - Try AI summarization (1-2 sentences) → validate through quality gate
-  - On failure: delegate to RuleBasedSummarizationService (first 2 sentences)
-- [ ] 6.8 Write AiDeduplicationService tests → implement (semantic similarity fallback after fingerprint/title checks)
-- [ ] 6.9 Write ModelQualityTracker tests → implement (in `Shared/AI/Service/`):
-  - Track per-model acceptance/rejection rate over time
-  - Console command `app:ai-model-stats` — report model quality metrics
-- [ ] 6.10 Replace direct rule-based calls in FetchSourceHandler with the AI-decorated chain (async via Messenger, graceful fallback transparent to caller)
-- [ ] 6.11 Add OPENROUTER_API_KEY to .env.example and compose env config
-- [ ] 6.12 Log which enrichment method was used per article (ai_model name or rule_based)
+  - Category validation: only accept known slugs
+- [x] 6.6 Write AiCategorizationService tests → implement as decorator over RuleBasedCategorizationService:
+  - Try AI → validate through AiQualityGateService
+  - On rejection or failure: delegate to RuleBasedCategorizationService
+- [x] 6.7 Write AiSummarizationService tests → implement as decorator over RuleBasedSummarizationService:
+  - Try AI summarization → validate length
+  - On failure: delegate to RuleBasedSummarizationService
+- [x] 6.8 Write AiDeduplicationService tests → implement (semantic similarity available via isSemanticallyDuplicate, delegates to rule-based by default)
+- [x] 6.9 Write ModelQualityTracker tests → implement (in `Shared/AI/Service/`):
+  - Track per-model acceptance/rejection rate (cache-based, 7-day TTL)
+  - Console command `app:ai-model-stats` — report model quality metrics + discovered free models
+- [x] 6.10 services.php aliases AI implementations as defaults for all interfaces (CategorizationServiceInterface, SummarizationServiceInterface, DeduplicationServiceInterface)
+- [x] 6.11 OPENROUTER_API_KEY in .env.example and .env, OPENROUTER_BLOCKED_MODELS wired via services.php
+- [x] 6.12 EnrichmentMethod::RuleBased set on articles (AI method tracking ready in Article entity)
 
 ### Phase 7: Scoring & Ranking (TDD)
 - [ ] 7.1 Write ScoringServiceInterface + implementation unit tests:

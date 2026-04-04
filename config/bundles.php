@@ -24,4 +24,7 @@ return [
     Twig\Extra\TwigExtraBundle\TwigExtraBundle::class => [
         'all' => true,
     ],
+    Symfony\AI\AiBundle\AiBundle::class => [
+        'all' => true,
+    ],
 ];

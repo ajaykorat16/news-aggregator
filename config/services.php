@@ -54,7 +54,7 @@ return static function (ContainerConfigurator $container): void {
 
     // Wire OPENROUTER_BLOCKED_MODELS env var for ModelDiscoveryService
     $services->set(\App\Shared\AI\Service\ModelDiscoveryService::class)
-        ->arg('$blockedModels', '%env(default::OPENROUTER_BLOCKED_MODELS)%');
+        ->arg('$blockedModels', '%env(string:OPENROUTER_BLOCKED_MODELS)%');
 
     // Wire retention env vars for CleanupCommand
     $services->set(\App\Shared\Command\CleanupCommand::class)

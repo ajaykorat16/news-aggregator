@@ -1,0 +1,35 @@
+# Symfony
+/vendor/
+/var/
+/.env.local
+/.env.*.local
+/public/bundles/
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# TypeScript build output (compiled from assets/ts/)
+/assets/js/
+
+# Node/Bun
+/node_modules/
+bun.lockb
+
+# Coverage & testing
+/coverage/
+.phpunit.result.cache
+infection.log
+
+# Loupe search index
+/var/loupe/

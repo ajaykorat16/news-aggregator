@@ -8,6 +8,7 @@
 # IDE
 /.idea/
 /.vscode/
+.phpantom.toml
 *.swp
 *.swo
 *~
@@ -33,3 +34,31 @@ infection.log
 
 # Loupe search index
 /var/loupe/
+
+# Backup
+/backup/
+
+# Planning files (not shipped)
+task_plan.md
+progress.md
+findings.md
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###

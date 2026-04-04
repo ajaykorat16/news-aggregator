@@ -13,7 +13,7 @@ use Symfony\AI\Platform\PlatformInterface;
 
 final readonly class AiSummarizationService implements SummarizationServiceInterface
 {
-    private const string MODEL = 'openrouter/auto';
+    private const string MODEL = 'openrouter/free';
 
     private const string PROMPT_TEMPLATE = <<<'PROMPT'
 Summarize the following news article in 1-2 concise sentences. Focus on the key facts.

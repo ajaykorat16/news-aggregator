@@ -14,7 +14,7 @@ use Symfony\AI\Platform\PlatformInterface;
 
 final readonly class AiAlertEvaluationService
 {
-    private const string MODEL = 'openrouter/auto';
+    private const string MODEL = 'openrouter/free';
 
     private const string PROMPT_TEMPLATE = <<<'PROMPT'
 Given this context: %s

@@ -15,7 +15,7 @@ use Symfony\AI\Platform\PlatformInterface;
  */
 final readonly class AiDeduplicationService implements DeduplicationServiceInterface
 {
-    private const string MODEL = 'openrouter/auto';
+    private const string MODEL = 'openrouter/free';
 
     private const string PROMPT_TEMPLATE = <<<'PROMPT'
 Are these two article titles about the same news event? Answer ONLY "yes" or "no".

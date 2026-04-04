@@ -36,7 +36,7 @@ final class AiSummarizationServiceTest extends TestCase
 
         self::assertSame($aiSummary, $result->value);
         self::assertSame(EnrichmentMethod::Ai, $result->method);
-        self::assertSame('openrouter/auto', $result->modelUsed);
+        self::assertSame('openrouter/free', $result->modelUsed);
     }
 
     public function testFallsBackToRuleBasedOnFailure(): void

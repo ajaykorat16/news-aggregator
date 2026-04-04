@@ -33,7 +33,7 @@ final class AiSmokeTestCommand extends Command
 
         try {
             $messageBag = new MessageBag(Message::ofUser('Respond with exactly one word: hello'));
-            $result = $this->platform->invoke('openrouter/auto', $messageBag);
+            $result = $this->platform->invoke('openrouter/free', $messageBag);
             $text = $result->asText();
 
             $io->success(sprintf('AI Response: "%s"', $text));

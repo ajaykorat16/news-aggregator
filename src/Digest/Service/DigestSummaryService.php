@@ -12,7 +12,7 @@ use Symfony\AI\Platform\PlatformInterface;
 
 final readonly class DigestSummaryService
 {
-    private const string MODEL = 'openrouter/auto';
+    private const string MODEL = 'openrouter/free';
 
     private const string PROMPT_TEMPLATE = <<<'PROMPT'
 Generate a concise editorial digest for the following news articles grouped by category.

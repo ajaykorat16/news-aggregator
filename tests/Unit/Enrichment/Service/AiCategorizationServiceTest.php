@@ -36,7 +36,7 @@ final class AiCategorizationServiceTest extends TestCase
 
         self::assertSame('tech', $result->value);
         self::assertSame(EnrichmentMethod::Ai, $result->method);
-        self::assertSame('openrouter/auto', $result->modelUsed);
+        self::assertSame('openrouter/free', $result->modelUsed);
     }
 
     public function testFallsBackToRuleBasedOnFailure(): void

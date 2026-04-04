@@ -13,7 +13,7 @@ use Symfony\AI\Platform\PlatformInterface;
 
 final readonly class AiCategorizationService implements CategorizationServiceInterface
 {
-    private const string MODEL = 'openrouter/auto';
+    private const string MODEL = 'openrouter/free';
 
     private const string PROMPT_TEMPLATE = <<<'PROMPT'
 Categorize the following news article into exactly one of these categories: politics, business, tech, science, sports.

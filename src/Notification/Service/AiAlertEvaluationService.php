@@ -56,7 +56,12 @@ PROMPT;
 
             return $this->parseResponse($content);
         } catch (\Throwable $e) {
-            $this->logger->warning('AI alert evaluation failed: {error}', [
+            $this->logger->warning('AI alert evaluation failed for rule "{rule}" on article "{article}": {error}', [
+                'rule' => $rule->getName(),
+                'rule_id' => $rule->getId(),
+                'article' => $article->getTitle(),
+                'article_id' => $article->getId(),
+                'model' => self::MODEL,
                 'error' => $e->getMessage(),
             ]);
 

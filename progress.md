@@ -1,5 +1,49 @@
 # News Aggregator — Progress Log
 
+## Session 14 — 2026-04-04
+
+### Completed
+
+#### Phase 13: CI/CD, Security & Final Polish
+
+- [x] 13.1: Created `.github/workflows/ci.yml` — parallel quality jobs (ECS, PHPStan, Rector via matrix strategy) + sequential test jobs (unit, integration, functional); all inside Docker Compose
+- [x] 13.2: Created `.github/workflows/security.yml` — weekly Monday 6am cron; `composer audit` + `symfony security:check`; `workflow_dispatch` for manual runs
+- [x] 13.3: Created `.github/dependabot.yml` — Composer (weekly, minor/patch grouped), Docker (weekly), GitHub Actions (monthly); all assigned to `tony-stark-eth`
+- [x] 13.4: Created `.github/workflows/publish.yml` — triggers on `v*` tags; builds `frankenphp_prod` target; tags with semver + `latest`; pushes to `ghcr.io/tony-stark-eth/news-aggregator`
+- [x] 13.7: Updated `CLAUDE.md` — full make target reference table, domain overview diagram, AI integration summary, key env vars table
+- [x] 13.10: Updated `README.md` — GHCR quickstart (`docker pull`), notification setup with DSN examples for 5 transports, alert rules documentation (types, fields, example prompts), digest configuration, AI explanation, data retention config, CI/license/PHP badges
+- [x] 13.11: Created `docs/architecture.md` — Mermaid graph diagram: Docker services, domain data flow, external dependencies (OpenRouter, RSS feeds, Notifier transports, Loupe/SQLite), port map, domain boundary table
+- [x] 13.11: Created `docs/article-lifecycle.md` — Mermaid flowchart: full article pipeline (fetch → dedup → persist → score → enrich → search index → alert matching → notification → digest), key design decisions table
+- [x] 13.12: README badges added (CI, license, PHP version); links to docs/ diagrams; GHCR quickstart as Option A; Option B (build from source) preserved
+- [x] 13.13: Updated `CHANGELOG.md` — comprehensive initial release notes covering all 13 phases: infrastructure, quality tooling, all domains, AI integration, frontend, operations, CI/CD, architecture decisions
+
+### Notes
+- 13.5 (verify CI passes), 13.6 (code review skills), 13.8 (parent CLAUDE.md), 13.9 (Homarr) are manual steps — skipped per instructions
+
+## Session 13 — 2026-04-04
+
+### Completed
+
+#### Phase 12: Logging & Monitoring
+
+- [x] 12.1: Updated `config/packages/monolog.php` — added `app` channel; dev now logs to `php://stderr` (primary) + rotating file (7-day retention); prod retains stderr JSON + separate `app` rotating log (30-day, JSON); test unchanged
+- [x] 12.2: Enhanced structured logging context across all key services:
+  - `AiAlertEvaluationService` — added `rule`, `rule_id`, `article`, `article_id`, `model` to warning
+  - `AiCategorizationService` — added `model` to quality gate rejection + failure warning
+  - `AiSummarizationService` — added `model` to rejection info + failure warning
+  - `SendNotificationHandler` — added `rule_id` + `article_id` to severity-skip info + sent info
+  - `GenerateDigestHandler` — added `digest_config_id` to skip/failure/success logs; added `delivery_success` to completion log
+  - `FetchSourceHandler` + `ModelFailoverPlatform` — already had full context, verified OK
+- [x] 12.3: Added `ember` service to `compose.override.yaml` (dev only) — `ghcr.io/hosmelq/ember:1.0.1`, depends on `php`, `EMBER_CADDY_ADMIN_URL=http://php:2019`, `tty: true`
+- [x] 12.4-12.5: Added `make ember` target to Makefile (runs `ember` binary inside container)
+
+### Quality
+- ECS: OK (no issues)
+- PHPStan: 0 errors (153 files)
+- Rector: clean (no changes needed)
+- PHPUnit unit: 95 tests pass
+- PHPUnit integration: 11 tests pass
+
 ## Session 1 — 2026-04-04
 
 ### Completed

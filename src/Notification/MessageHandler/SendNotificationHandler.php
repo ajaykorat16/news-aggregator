@@ -42,6 +42,8 @@ final readonly class SendNotificationHandler
             if ($evaluation instanceof EvaluationResult && $evaluation->severity < $rule->getSeverityThreshold()) {
                 $this->logger->info('Alert "{rule}" skipped: AI severity {severity} < threshold {threshold}', [
                     'rule' => $rule->getName(),
+                    'rule_id' => $rule->getId(),
+                    'article_id' => $article->getId(),
                     'severity' => $evaluation->severity,
                     'threshold' => $rule->getSeverityThreshold(),
                 ]);
@@ -54,7 +56,9 @@ final readonly class SendNotificationHandler
 
         $this->logger->info('Notification sent for alert "{rule}" on article "{article}"', [
             'rule' => $rule->getName(),
+            'rule_id' => $rule->getId(),
             'article' => $article->getTitle(),
+            'article_id' => $article->getId(),
         ]);
     }
 }

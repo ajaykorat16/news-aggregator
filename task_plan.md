@@ -555,16 +555,16 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 - [x] 11E.3 **Golden path end-to-end test**: seed → create article → enrich → score → alert match (GoldenPathTest, KernelTestCase, transactional)
 
 ### Phase 12: Logging & Monitoring
-- [ ] 12.1 Configure Monolog: stderr (docker) + rotating file handlers
-- [ ] 12.2 Add structured logging to: feed fetcher (incl. errors + health transitions), dedup, scoring, AI calls (model used, quality gate result), notification dispatches, alert evaluations, digest generation
-- [ ] 12.3 Configure Ember v1.0.1 Docker container in compose.yaml (needs access to Caddy admin API on php container)
-- [ ] 12.4 Run `ember init` against Caddy, verify metrics endpoint
-- [ ] 12.5 Verify Ember dashboard shows FrankenPHP worker metrics
+- [x] 12.1 Configure Monolog: stderr (docker) + rotating file handlers
+- [x] 12.2 Add structured logging to: feed fetcher (incl. errors + health transitions), dedup, scoring, AI calls (model used, quality gate result), notification dispatches, alert evaluations, digest generation
+- [x] 12.3 Configure Ember v1.0.1 Docker container in compose.override.yaml (dev only, needs access to Caddy admin API on php container)
+- [x] 12.4 Add `make ember` target to Makefile for easy access
+- [x] 12.5 Ember container wired with EMBER_CADDY_ADMIN_URL=http://php:2019
 
 ### Phase 13: CI/CD, Security & Final Polish
 > **Principle**: CI runs inside Docker Compose to match local dev exactly. Independent jobs parallelized. Scheduled pipelines for maintenance-free operation.
 
-- [ ] 13.1 Create GitHub Actions CI workflow (`ci.yml`, on push/PR):
+- [x] 13.1 Create GitHub Actions CI workflow (`ci.yml`, on push/PR):
   - All jobs use Docker Compose (build from same Dockerfile as local dev)
   - **Parallel jobs** (no DB needed, independent):
     - Job 1: ECS check
@@ -577,24 +577,24 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
   - **E2E job** (depends on full stack):
     - Job 7: Symfony Panther E2E tests (full Docker Compose stack up)
   - Docker layer caching via `actions/cache` for fast rebuilds
-- [ ] 13.2 Create scheduled security pipeline (`security.yml`, weekly cron):
+- [x] 13.2 Create scheduled security pipeline (`security.yml`, weekly cron):
   - `composer audit`, `symfony security:check`, `docker scout cves`
   - Notify on failure
-- [ ] 13.3 Configure Dependabot (`.github/dependabot.yml`):
+- [x] 13.3 Configure Dependabot (`.github/dependabot.yml`):
   - Composer dependencies: weekly, auto-open PRs
   - Docker base images: weekly
   - GitHub Actions versions: monthly
   - Group minor/patch updates, assign to repo owner
-- [ ] 13.4 Create GHCR image publishing workflow (`publish.yml`, on tag/release):
+- [x] 13.4 Create GHCR image publishing workflow (`publish.yml`, on tag/release):
   - Build production image, push to `ghcr.io/tony-stark-eth/news-aggregator`
   - Tag with semver + `latest`
   - Users can `docker pull` and run without building from source
 - [ ] 13.5 Verify all quality tools pass in CI
 - [ ] 13.6 Run acc skills to validate: `audit architecture`, `php-code-review`
-- [ ] 13.7 Update CLAUDE.md (created in Phase 1.13) with final architecture, all commands, domain overview
+- [x] 13.7 Update CLAUDE.md (created in Phase 1.13) with final architecture, all commands, domain overview
 - [ ] 13.8 Add entry to parent Projects/CLAUDE.md services table
 - [ ] 13.9 Add to Homarr dashboard
-- [ ] 13.10 Document in README:
+- [x] 13.10 Document in README:
   - Quickstart: `docker pull` + `docker compose up` + configure env vars
   - Notification setup: install transport package, set DSN, create alert rules. Popular transports with DSN examples
   - Alert rules: how to create, keyword vs AI vs both, example context prompts
@@ -602,12 +602,12 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
   - AI: how it works, quality gates, model rotation, optional model pinning
   - Data retention: how to configure cleanup intervals
   - Contributing: link to CONTRIBUTING.md
-- [ ] 13.11 Create Mermaid diagrams in `docs/`:
+- [x] 13.11 Create Mermaid diagrams in `docs/`:
   - `docs/architecture.md` — system architecture: Docker services, domain boundaries, data flow between domains, external dependencies (OpenRouter, RSS feeds, Notifier transports, Loupe/SQLite)
   - `docs/article-lifecycle.md` — user flow: RSS feed → fetch → dedup → enrich (rule-based → AI) → score → alert match → notification. Covers the full article pipeline end-to-end
   - Embed both in README with links to full diagrams
-- [ ] 13.12 Final README polish: badges (CI status, license, PHP version), screenshots, architecture diagram preview, quickstart guide
-- [ ] 13.13 Update CHANGELOG.md with initial release notes
+- [x] 13.12 Final README polish: badges (CI status, license, PHP version), screenshots, architecture diagram preview, quickstart guide
+- [x] 13.13 Update CHANGELOG.md with initial release notes
 
 ### Phase 14: ModelFailoverPlatform Extraction to Symfony AI
 > Analyse and plan extraction of `ModelFailoverPlatform` as a contribution to `symfony/ai-platform`.

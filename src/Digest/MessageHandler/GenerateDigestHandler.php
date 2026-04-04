@@ -42,6 +42,7 @@ final readonly class GenerateDigestHandler
         if ($groupedArticles->isEmpty()) {
             $this->logger->info('Digest "{name}" skipped: no articles found', [
                 'name' => $config->getName(),
+                'digest_config_id' => $message->digestConfigId,
             ]);
             return;
         }
@@ -62,6 +63,8 @@ final readonly class GenerateDigestHandler
             $success = false;
             $this->logger->warning('Digest delivery failed: {error}', [
                 'error' => $e->getMessage(),
+                'name' => $config->getName(),
+                'digest_config_id' => $message->digestConfigId,
             ]);
         }
 
@@ -74,7 +77,9 @@ final readonly class GenerateDigestHandler
 
         $this->logger->info('Digest "{name}" generated: {count} articles', [
             'name' => $config->getName(),
+            'digest_config_id' => $message->digestConfigId,
             'count' => $totalArticles,
+            'delivery_success' => $success,
         ]);
     }
 }

@@ -52,30 +52,35 @@ final class SeedDataCommand extends Command
                 'slug' => 'politics',
                 'weight' => 10,
                 'color' => '#EF4444',
+                'fetchInterval' => 5,
             ],
             [
                 'name' => 'Business',
                 'slug' => 'business',
                 'weight' => 9,
                 'color' => '#F59E0B',
+                'fetchInterval' => 10,
             ],
             [
                 'name' => 'Tech',
                 'slug' => 'tech',
                 'weight' => 8,
                 'color' => '#3B82F6',
+                'fetchInterval' => 15,
             ],
             [
                 'name' => 'Science',
                 'slug' => 'science',
                 'weight' => 7,
                 'color' => '#10B981',
+                'fetchInterval' => 60,
             ],
             [
                 'name' => 'Sports',
                 'slug' => 'sports',
                 'weight' => 6,
                 'color' => '#8B5CF6',
+                'fetchInterval' => 30,
             ],
         ];
 
@@ -94,9 +99,10 @@ final class SeedDataCommand extends Command
             }
 
             $category = new Category($def['name'], $def['slug'], $def['weight'], $def['color']);
+            $category->setFetchIntervalMinutes($def['fetchInterval']);
             $this->entityManager->persist($category);
             $categories[$def['slug']] = $category;
-            $io->info(sprintf('Created category: %s', $def['name']));
+            $io->info(sprintf('Created category: %s (fetch every %d min)', $def['name'], $def['fetchInterval']));
         }
 
         return $categories;

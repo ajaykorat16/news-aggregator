@@ -30,6 +30,9 @@ class Category
     #[ORM\Column(length: 7)]
     private string $color;
 
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $fetchIntervalMinutes = null;
+
     public function __construct(string $name, string $slug, int $weight, string $color)
     {
         $this->name = $name;
@@ -71,5 +74,15 @@ class Category
     public function setColor(string $color): void
     {
         $this->color = $color;
+    }
+
+    public function getFetchIntervalMinutes(): ?int
+    {
+        return $this->fetchIntervalMinutes;
+    }
+
+    public function setFetchIntervalMinutes(?int $fetchIntervalMinutes): void
+    {
+        $this->fetchIntervalMinutes = $fetchIntervalMinutes;
     }
 }

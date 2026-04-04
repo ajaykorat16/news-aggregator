@@ -649,4 +649,13 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 
 ## Error Log
 
-_(Track errors and blockers here during implementation)_
+| # | Date | Phase | Error | Root Cause | Resolution |
+|---|------|-------|-------|------------|------------|
+| E1 | 2026-04-04 | 6 | `Payload must be an array` when calling AI platform | `Platform::invoke()` requires `MessageBag(Message::ofUser(...))`, not raw string. Symfony AI docs were not consulted before implementation. | Fixed all 5 AI services to use MessageBag. Added `app:ai-smoke-test` command for quick verification. |
+| E2 | 2026-04-04 | 11 | `app.request.get()` in Twig templates caused 500 errors | Anti-pattern: templates directly accessed HTTP layer. `app.request.get('_route')` doesn't exist in Symfony. | Created `NavigationExtension` (Twig global) providing `nav.activeRoute` and `nav.searchQuery`. Templates never access `app.request`. |
+| E3 | 2026-04-04 | 11 | PgBouncer "wrong password type" error | `edoburu/pgbouncer` defaults to `md5` auth, PostgreSQL 17 uses `scram-sha-256`. | Added `AUTH_TYPE: scram-sha-256` to pgbouncer env in compose.yaml. |
+| E4 | 2026-04-04 | 11 | AI enrichment tracked as `rule_based` despite AI responses succeeding | `FetchSourceHandler` hardcoded `EnrichmentMethod::RuleBased`. Interfaces returned `?string` with no method metadata. | Created `EnrichmentResult` DTO (value + method + modelUsed). All interfaces + implementations updated. |
+| E5 | 2026-04-04 | 11 | `Unique violation` on article URL when fetching multiple sources | Multiple sources sharing same article URL. Batch flush failed, rolled back all articles. | Per-article flush with try-catch. EM recovery on constraint violation (clear + re-find source). |
+| E6 | 2026-04-04 | 11 | Only 26/83 articles AI-enriched after fix | Stale container cache: Messenger worker used old compiled container without MessageBag fix. | Fresh `cache:clear` + restart resolved: 127/127 articles AI-enriched on re-run. |
+| E7 | 2026-04-04 | 11 | `ModelDiscoveryService::$blockedModels must be type string, null given` | `%env(default::OPENROUTER_BLOCKED_MODELS)%` returns null for empty env var. | Changed to `%env(string:OPENROUTER_BLOCKED_MODELS)%` which guarantees string type. |
+| E8 | 2026-04-04 | 11 | Feed URLs returning 404: Handelsblatt, Reuters Business, Kicker DNS | External feeds went offline. | Feeds auto-degrade via Source health tracking. Should update seed data with verified URLs. |

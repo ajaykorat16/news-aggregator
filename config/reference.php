@@ -1857,6 +1857,16 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         store?: string|Param, // Service name of store // Default: "Symfony\\AI\\Store\\StoreInterface"
  *     }>,
  * }
+ * @psalm-type CmsigSealConfig = array{
+ *     index_name_prefix?: scalar|Param|null, // Default: ""
+ *     schemas?: array<string, array{ // Default: []
+ *         dir?: scalar|Param|null,
+ *         engine?: scalar|Param|null, // Default: null
+ *     }>,
+ *     engines?: array<string, array{ // Default: []
+ *         adapter?: scalar|Param|null,
+ *     }>,
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1869,6 +1879,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     twig?: TwigConfig,
  *     twig_extra?: TwigExtraConfig,
  *     ai?: AiConfig,
+ *     cmsig_seal?: CmsigSealConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1881,6 +1892,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         twig?: TwigConfig,
  *         twig_extra?: TwigExtraConfig,
  *         ai?: AiConfig,
+ *         cmsig_seal?: CmsigSealConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

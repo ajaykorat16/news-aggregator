@@ -55,4 +55,13 @@ return static function (ContainerConfigurator $container): void {
     // Wire OPENROUTER_BLOCKED_MODELS env var for ModelDiscoveryService
     $services->set(\App\Shared\AI\Service\ModelDiscoveryService::class)
         ->arg('$blockedModels', '%env(default::OPENROUTER_BLOCKED_MODELS)%');
+
+    // Wire retention env vars for CleanupCommand
+    $services->set(\App\Shared\Command\CleanupCommand::class)
+        ->arg('$retentionArticleDays', '%env(int:RETENTION_ARTICLES)%')
+        ->arg('$retentionLogDays', '%env(int:RETENTION_LOGS)%');
+
+    // Wire default fetch interval for FetchScheduleProvider
+    $services->set(\App\Source\Scheduler\FetchScheduleProvider::class)
+        ->arg('$defaultIntervalMinutes', '%env(int:FETCH_DEFAULT_INTERVAL_MINUTES)%');
 };

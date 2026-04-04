@@ -19,6 +19,7 @@ return static function (ContainerConfigurator $container): void {
                         'max_delay' => 0,
                     ],
                 ],
+                'scheduler_fetch' => 'symfony://scheduler_fetch',
                 // 'failed' => ['dsn' => 'doctrine://default?queue_name=failed'],
             ],
             // Route messages to transports:

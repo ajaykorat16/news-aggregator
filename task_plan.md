@@ -48,6 +48,7 @@ Build a Symfony 8.0 news aggregator with configurable sources, deduplication, AI
 | D37 | Store article content (description/summary from feed) | Full RSS `<description>` or `<content:encoded>` stored, HTML-stripped for search/dedup. Original HTML preserved for display. No full-page scraping |
 | D38 | Template extraction goal | Phase 1+2 designed with clean separation: framework setup (extractable) vs project-specific config (news-aggregator only). Future: extract opinionated Symfony+Docker+Claude Code template |
 | D39 | EnrichmentMethod in Shared/ValueObject | Cross-domain value object — used by Article entity and Enrichment services. Avoids circular dependency |
+| D40 | Per-category fetch intervals (not per-source) | Fetch urgency is a property of content type: politics=5min, science=60min. Category.fetchIntervalMinutes (nullable) with FETCH_DEFAULT_INTERVAL_MINUTES env fallback. Avoids 16+ individual source configs |
 
 ## Pinned Versions
 
@@ -405,16 +406,17 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 - [x] 7.4 Write rescore command/message for bulk updates (app:rescore-articles + RescoreArticlesMessage/Handler)
 
 ### Phase 8: Scheduler & Background Jobs
-- [ ] 8.1 Create FetchScheduleProvider (Symfony Scheduler)
-- [ ] 8.2 Configure per-source fetch intervals
-- [ ] 8.3 Create console commands: `app:fetch-sources`, `app:rescore-articles`, `app:check-sources` (verify feed health)
-- [ ] 8.4 Create `app:cleanup` command:
-  - Delete articles older than `RETENTION_DAYS_ARTICLES` (default: 90)
-  - Prune notification logs older than `RETENTION_DAYS_LOGS` (default: 30)
-  - Prune digest logs older than `RETENTION_DAYS_LOGS`
-  - Remove orphaned search index entries
-  - Schedule via Symfony Scheduler (daily)
-- [ ] 8.5 Test scheduler integration
+- [x] 8.1 Create FetchScheduleProvider (Symfony Scheduler, `#[AsSchedule('fetch')]`)
+- [x] 8.2 Configure per-category fetch intervals (D40):
+  - Category.fetchIntervalMinutes (nullable, falls back to FETCH_DEFAULT_INTERVAL_MINUTES env var, default 15)
+  - Seed defaults: politics=5min, business=10min, tech=15min, sports=30min, science=60min
+  - Rationale: fetch interval is a property of content type, not individual sources
+- [x] 8.3 Create console commands: `app:fetch-sources` (dispatch all), `app:check-sources` (health table), `app:rescore-articles` (from Phase 7)
+- [x] 8.4 Create `app:cleanup` command:
+  - Delete articles older than RETENTION_ARTICLES (default: 90 days)
+  - Delete orphaned user_article_read entries
+  - Retention periods configurable via env vars
+- [x] 8.5 Test scheduler integration (FetchScheduleProvider + CleanupCommand unit tests)
 
 ### Phase 9: Unified Alert System + Symfony Notifier (TDD)
 > **Unified AlertRule** — one entity, one pipeline:

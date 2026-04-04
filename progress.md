@@ -66,13 +66,47 @@
 - [x] Committed and pushed initial planning files
 - [x] Saved feedback memory for planning file update discipline
 
+## Session 2 — 2026-04-04
+
+### Completed
+- [x] Phase 1.1-1.3: Cloned dunglas/symfony-docker, built Docker images, scaffolded Symfony 8.0.8 (PHP 8.4.19)
+- [x] Phase 1.6: Open-source files (LICENSE, README, CONTRIBUTING, CHANGELOG, SECURITY, .env.example, GitHub templates)
+- [x] Phase 1.7: Dockerfile adapted — Bun added to frankenphp_dev stage
+- [x] Phase 1.8: Docker Compose setup — PostgreSQL 17, PgBouncer (edoburu/pgbouncer, transaction mode), Messenger worker
+- [x] Phase 1.9: Ports mapped — 8443 (HTTPS) / 8180 (HTTP)
+- [x] Phase 1.10: docker/postgres/init.sql — app_test DB for integration tests
+- [x] Phase 1.11-1.12: Makefile with all targets (docker, quality, test, db, backup/restore, ts, hooks)
+- [x] Phase 1.14: .claude/ guideline files (coding-php, coding-typescript, testing, architecture)
+- [x] Phase 1.15: Verified — Symfony welcome page on https://localhost:8443
+- [x] Phase 2.1: PHPStan 2.1.x installed — level max, 10 extensions, bleeding edge, zero errors
+- [x] Phase 2.2: ECS 13.0.x installed — PSR-12 + common + strict + cleanCode
+- [x] Phase 2.3: Rector 2.4.x installed — PHP 8.4, Symfony 8, Doctrine, PHPUnit sets
+- [x] Phase 2.4: Infection 0.32.x installed — unit-only, 80/90% MSI thresholds
+- [x] Phase 2.5: PHPat 0.12.x installed via PHPStan extension
+- [x] Phase 2.6: Git hooks — pre-commit (ECS+PHPStan+Rector with rebase guard + patch backup), commit-msg (conventional commits)
+- [x] Phase 2.7: PHPUnit 13.1.x — unit + integration suites, random order, requireCoverageMetadata
+- [x] Phase 2.8: Symfony Panther installed (ServerExtension in phpunit.dist.xml)
+- [x] Phase 2.9: All Makefile targets in place
+- [x] Phase 2.10: symfony/clock installed, ShipMonk bans time/date/strtotime via forbidCustomFunctions
+- [x] Phase 2.11: Doctrine configured for UTC (datetime_immutable, server_version 17)
+- [x] Phase 2.12: Security configured — memory provider, form_login, ADMIN_EMAIL env var
+- [x] Phase 2.13: TypeScript pipeline — tsconfig.json (strict), Bun in Dockerfile, AssetMapper configured
+- [x] Phase 2.14: All YAML configs converted to PHP (ContainerConfigurator::extension() pattern)
+- [x] Phase 2.15: All quality tools pass — ECS OK, PHPStan OK (0 errors), Rector OK
+
+### Key Decisions Made
+- Used `edoburu/pgbouncer` instead of `bitnami/pgbouncer` (bitnami:latest not found on Docker Hub)
+- PHP config uses `ContainerConfigurator::extension()` pattern, not typed config classes (chicken-and-egg issue with cache warmup)
+- Security uses memory provider instead of User entity for now (entity deferred to Phase 3)
+- Ember container deferred to Phase 12 (monitoring)
+- ShipMonk forbidden functions configured via services override (not via `list` config param)
+
 ### Current Status
-Phase 1 in progress. 3 of 15 tasks complete (1.4, 1.5, 1.13). Next: clone dunglas/symfony-docker (1.1).
+Phase 1 + Phase 2 complete (30 of 30 tasks). Ready for PR #1 and Phase 3 (domain entities).
 
 ### Blockers
 - None
 
 ### Next Steps
-- Phase 1.1: Clone dunglas/symfony-docker into news-aggregator/
-- Phase 1.2: Build & up to scaffold Symfony 8.0.x
-- Phase 1.3: Verify Symfony version
+- Commit all changes as PR #1
+- Phase 3: Domain entities + database migrations

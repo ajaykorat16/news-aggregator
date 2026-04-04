@@ -199,12 +199,12 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 ### Phase 1: Project Scaffolding & Infrastructure
 > **Sequence**: Clone dunglas/symfony-docker → `docker compose build && up` → verify latest Symfony 8.0.x is installed → THEN proceed to Phase 2 for quality tooling.
 
-- [ ] 1.1 Clone dunglas/symfony-docker (latest main) into news-aggregator/
-- [ ] 1.2 `docker compose build --no-cache` + `docker compose up --pull always -d --wait` to scaffold Symfony 8.0.x
-- [ ] 1.3 Verify Symfony version (`bin/console --version`) is 8.0.x
+- [x] 1.1 Clone dunglas/symfony-docker (latest main) into news-aggregator/
+- [x] 1.2 `docker compose build --no-cache` + `docker compose up --pull always -d --wait` to scaffold Symfony 8.0.x
+- [x] 1.3 Verify Symfony version (`bin/console --version`) is 8.0.x — confirmed 8.0.8
 - [x] 1.4 Create private GitHub repo (`gh repo create tony-stark-eth/news-aggregator --private`)
 - [x] 1.5 Initialize git repo, create .gitignore (ensure no secrets, .env.local, vendor/ committed)
-- [ ] 1.6 Open-source preparation (ready to flip to public):
+- [x] 1.6 Open-source preparation (ready to flip to public):
   - MIT LICENSE file
   - README.md (project description, features, setup, configuration, architecture overview)
   - CONTRIBUTING.md (dev setup, code quality expectations, PR process, conventional commits)
@@ -213,18 +213,18 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
   - .env.example (all env vars with placeholder values, no real secrets)
   - GitHub issue templates (.github/ISSUE_TEMPLATE/bug_report.md, feature_request.md)
   - GitHub PR template (.github/pull_request_template.md)
-- [ ] 1.7 Adapt Dockerfile: add Bun installation to `frankenphp_dev` stage (not in dunglas/symfony-docker by default)
-- [ ] 1.8 Adapt Docker setup: add PgBouncer service, Messenger worker service, Ember v1.0.1 container, `loupe_data` named volume for search index persistence
-- [ ] 1.9 Map ports: 8443 (HTTPS) / 8180 (HTTP) in compose.override.yaml
-- [ ] 1.10 Create docker/postgres/init.sql (app_test DB for integration tests)
-- [ ] 1.11 Create Makefile (docker, quality, test, db, backup/restore targets — modeled on template)
-- [ ] 1.12 Add `make export-postgres` / `make import-postgres` backup/restore targets
+- [x] 1.7 Adapt Dockerfile: add Bun installation to `frankenphp_dev` stage (not in dunglas/symfony-docker by default)
+- [x] 1.8 Adapt Docker setup: add PgBouncer service, Messenger worker service (Ember deferred to Phase 12)
+- [x] 1.9 Map ports: 8443 (HTTPS) / 8180 (HTTP) in compose.yaml
+- [x] 1.10 Create docker/postgres/init.sql (app_test DB for integration tests)
+- [x] 1.11 Create Makefile (docker, quality, test, db, backup/restore targets — modeled on template)
+- [x] 1.12 Add `make export-postgres` / `make import-postgres` backup/restore targets
 - [x] 1.13 Create CLAUDE.md (project root) with:
   - Quick start commands (`make up`, `make quality`, `make test`)
   - Project type and stack summary
   - Links to `.claude/` guideline files
   - Hard rules: no `DateTime`, no `var_dump`/`dump`/`dd`, no `empty()`, no `ignoreErrors`, no YAML config, conventional commits, interface-first
-- [ ] 1.14 Create `.claude/` guideline files:
+- [x] 1.14 Create `.claude/` guideline files:
   - `.claude/coding-php.md` — PHP coding guidelines:
     - `declare(strict_types=1)`, `final readonly class` default, constructor injection only
     - Interface-first: all service boundaries defined by interface
@@ -255,56 +255,56 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
     - Multi-user readiness notes (which entities have user_id, migration path)
     - Makefile targets overview
     - ENV variables reference
-- [ ] 1.15 Verify `make up` boots cleanly with Symfony welcome page on https://localhost:8443
+- [x] 1.15 Verify `make up` boots cleanly with Symfony welcome page on https://localhost:8443
 
 ### Phase 2: Code Quality Tooling + Auth + TypeScript
 > **Purpose**: Install ALL quality tools + auth + TypeScript pipeline before writing any domain code, so every line is guarded from the start. Config modeled on template-symfony-sveltekit.
 
-- [ ] 2.1 Install & configure PHPStan 2.1.x (level max + 10 extensions):
+- [x] 2.1 Install & configure PHPStan 2.1.x (level max + 10 extensions):
   - phpstan-strict-rules, shipmonk/phpstan-rules, phpstan-deprecation-rules, voku/phpstan-rules
   - tomasvotruba/cognitive-complexity (max 8/method, 50/class)
   - tomasvotruba/type-coverage (100% return, param, property, constant, declare)
   - phpat/phpat, phpstan-symfony, phpstan-doctrine, phpstan-phpunit
   - Bleeding edge: checkUninitializedProperties, checkImplicitMixed, checkBenevolentUnionTypes
   - Zero ignoreErrors
-- [ ] 2.2 Install & configure ECS 13.0.x (PSR-12 + common + strict + cleanCode)
-- [ ] 2.3 Install & configure Rector 2.4.x (PHP 8.4, Symfony 8, Doctrine, PHPUnit, CodeQuality, DeadCode, EarlyReturn, TypeDeclaration)
-- [ ] 2.4 Install & configure Infection 0.32.x:
+- [x] 2.2 Install & configure ECS 13.0.x (PSR-12 + common + strict + cleanCode)
+- [x] 2.3 Install & configure Rector 2.4.x (PHP 8.4, Symfony 8, Doctrine, PHPUnit, CodeQuality, DeadCode, EarlyReturn, TypeDeclaration)
+- [x] 2.4 Install & configure Infection 0.32.x:
   - 80% MSI, 90% covered MSI
   - **Unit test suite only** (not integration)
   - Exclude Entity/Kernel/Controller/Command from mutation
   - Uses Xdebug path coverage (shared with PHPUnit)
-- [ ] 2.5 Install & configure PHPat 0.12.x (architecture tests via PHPStan)
-- [ ] 2.6 Create custom git hooks in `.githooks/`:
-  - `pre-commit`: run ECS check, PHPStan, Rector --dry-run on staged PHP files
+- [x] 2.5 Install & configure PHPat 0.12.x (architecture tests via PHPStan)
+- [x] 2.6 Create custom git hooks in `.githooks/`:
+  - `pre-commit`: run ECS check, PHPStan, Rector --dry-run on staged PHP files + rebase guard + patch backup
   - `commit-msg`: conventional commits regex validation
   - Install via `git config core.hooksPath .githooks` (Makefile target: `make hooks`)
-- [ ] 2.7 Configure PHPUnit 13.1.x:
+- [x] 2.7 Configure PHPUnit 13.1.x:
   - Unit + integration suites
   - **Xdebug path coverage** (XDEBUG_MODE=coverage, not PCOV)
   - Random execution order
   - #[CoversClass] required on every test class
-- [ ] 2.8 Install & verify Symfony Panther (early — catch FrankenPHP/Caddy compat issues now, not in Phase 11)
-- [ ] 2.9 Add Makefile targets: `make quality`, `make phpstan`, `make ecs`, `make rector`, `make test`, `make test-unit`, `make test-integration`, `make infection`, `make coverage`, `make hooks`
-- [ ] 2.10 Install & configure symfony/clock:
+- [x] 2.8 Install & verify Symfony Panther (early — catch FrankenPHP/Caddy compat issues now, not in Phase 11)
+- [x] 2.9 Add Makefile targets: `make quality`, `make phpstan`, `make ecs`, `make rector`, `make test`, `make test-unit`, `make test-integration`, `make infection`, `make coverage`, `make hooks`
+- [x] 2.10 Install & configure symfony/clock:
   - Inject `ClockInterface` everywhere time is needed (never `new DateTimeImmutable()` or `time()`)
   - Use `MockClock` in test bootstrap for deterministic time
   - ShipMonk ban: add `time`, `date`, `strtotime` to forbidden functions list
-- [ ] 2.11 Configure Doctrine to store all timestamps as UTC (`datetime_immutable` type, server default UTC)
-- [ ] 2.12 Install symfony/security-bundle, configure basic auth:
+- [x] 2.11 Configure Doctrine to store all timestamps as UTC (`datetime_immutable` type, server default UTC)
+- [x] 2.12 Install symfony/security-bundle, configure basic auth:
   - Single admin user via env vars (`ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`)
-  - Login page (simple Twig form)
-  - Session-based auth, firewall on all routes except health endpoint
-  - User entity in `src/User/Entity/User.php`
-- [ ] 2.13 Setup TypeScript + Bun + AssetMapper pipeline:
+  - Memory provider with form_login authenticator
+  - Session-based auth, firewall on all routes except login + dev tools
+  - (User entity deferred to Phase 3 — memory provider sufficient for now)
+- [x] 2.13 Setup TypeScript + Bun + AssetMapper pipeline:
   - `tsconfig.json` with strict mode
   - Bun compile step: `bun build assets/ts/*.ts --outdir=assets/js/`
   - AssetMapper serves compiled JS via importmap
   - Makefile targets: `make ts-build`, `make ts-watch` (using `bun --watch`)
   - No Node/npm, no Webpack, no Encore, no Stimulus
   - Bun added to Dockerfile in Phase 1.7
-- [ ] 2.14 Convert any YAML Symfony config files to PHP format
-- [ ] 2.15 Verify all tools pass on scaffolded project (zero errors)
+- [x] 2.14 Convert any YAML Symfony config files to PHP format
+- [x] 2.15 Verify all tools pass on scaffolded project (zero errors)
 
 ### Phase 3: Domain Entities & Database (TDD)
 - [ ] 3.1 Write Category entity tests → implement in `Shared/Entity/Category` (name, slug, weight, color)

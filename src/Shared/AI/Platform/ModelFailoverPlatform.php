@@ -44,7 +44,11 @@ final class ModelFailoverPlatform implements PlatformInterface
 
         foreach ($modelsToTry as $candidateModel) {
             try {
-                return $this->innerPlatform->invoke($candidateModel, $input, $options);
+                $result = $this->innerPlatform->invoke($candidateModel, $input, $options);
+                // Force eager evaluation — DeferredResult throws on asText(), not invoke()
+                $result->asText();
+
+                return $result;
             } catch (\Throwable $e) {
                 $lastException = $e;
                 $this->logger->info('Model {model} failed, trying next: {error}', [

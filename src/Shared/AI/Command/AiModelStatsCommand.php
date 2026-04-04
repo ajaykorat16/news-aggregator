@@ -38,9 +38,9 @@ final class AiModelStatsCommand extends Command
             foreach ($stats as $modelId => $data) {
                 $rows[] = [
                     $modelId,
-                    $data['accepted'],
-                    $data['rejected'],
-                    sprintf('%.1f%%', $data['acceptance_rate'] * 100),
+                    $data->accepted,
+                    $data->rejected,
+                    sprintf('%.1f%%', $data->acceptanceRate * 100),
                 ];
             }
 

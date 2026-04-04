@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Digest\Service;
 
 use App\Article\Entity\Article;
+use App\Digest\ValueObject\GroupedArticles;
 use Psr\Log\LoggerInterface;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
@@ -30,12 +31,9 @@ PROMPT;
     ) {
     }
 
-    /**
-     * @param array<string, list<Article>> $groupedArticles
-     */
-    public function generate(array $groupedArticles): string
+    public function generate(GroupedArticles $groupedArticles): string
     {
-        $articleText = $this->formatArticles($groupedArticles);
+        $articleText = $this->formatArticles($groupedArticles->byCategory);
 
         try {
             $prompt = sprintf(self::PROMPT_TEMPLATE, $articleText);
@@ -52,7 +50,7 @@ PROMPT;
             ]);
         }
 
-        return $this->ruleBasedFallback($groupedArticles);
+        return $this->ruleBasedFallback($groupedArticles->byCategory);
     }
 
     /**

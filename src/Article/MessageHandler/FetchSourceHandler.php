@@ -8,6 +8,8 @@ use App\Article\Entity\Article;
 use App\Article\Service\DeduplicationServiceInterface;
 use App\Article\Service\ScoringServiceInterface;
 use App\Article\ValueObject\ArticleFingerprint;
+use App\Article\ValueObject\FetchResult;
+use App\Article\ValueObject\PersistItemResult;
 use App\Enrichment\Service\CategorizationServiceInterface;
 use App\Enrichment\Service\SummarizationServiceInterface;
 use App\Enrichment\ValueObject\EnrichmentResult;
@@ -57,15 +59,15 @@ final readonly class FetchSourceHandler
             $items = $this->feedParser->parse($feedContent);
             $now = $this->clock->now();
 
-            [$persisted, $newArticles, $source] = $this->processItems($items, $source, $message->sourceId, $now);
+            $result = $this->processItems($items, $source, $message->sourceId, $now);
 
-            if ($source !== null) {
-                $source->recordSuccess($now);
+            if ($result->source instanceof \App\Source\Entity\Source) {
+                $result->source->recordSuccess($now);
                 $this->entityManager->flush();
-                $this->dispatchAlerts($newArticles);
+                $this->dispatchAlerts($result->newArticles);
                 $this->logger->info('Fetched {source}: {count} new articles from {total} items', [
-                    'source' => $source->getName(),
-                    'count' => $persisted,
+                    'source' => $result->source->getName(),
+                    'count' => $result->persistedCount,
                     'total' => \count($items),
                 ]);
             }
@@ -82,9 +84,8 @@ final readonly class FetchSourceHandler
 
     /**
      * @param list<FeedItem> $items
-     * @return array{int, list<Article>, Source|null}
      */
-    private function processItems(array $items, Source $source, int $sourceId, \DateTimeImmutable $now): array
+    private function processItems(array $items, Source $source, int $sourceId, \DateTimeImmutable $now): FetchResult
     {
         $persisted = 0;
         /** @var list<Article> $newArticles */
@@ -99,27 +100,25 @@ final readonly class FetchSourceHandler
                 continue;
             }
 
-            $result = $this->persistItem($item, $source, $sourceId, $now, $fingerprint);
-            if ($result === null) {
-                return [$persisted, $newArticles, null];
+            $itemResult = $this->persistItem($item, $source, $sourceId, $now, $fingerprint);
+            if (! $itemResult instanceof \App\Article\ValueObject\PersistItemResult) {
+                return new FetchResult($persisted, $newArticles, null);
             }
 
-            [$article, $source] = $result;
-            if ($article !== null) {
-                $newArticles[] = $article;
+            $source = $itemResult->source;
+            if ($itemResult->article instanceof \App\Article\Entity\Article) {
+                $newArticles[] = $itemResult->article;
                 $persisted++;
             }
         }
 
-        return [$persisted, $newArticles, $source];
+        return new FetchResult($persisted, $newArticles, $source);
     }
 
     /**
      * Attempts to build and persist one article. Returns null if the EM is
-     * irrecoverably broken and the loop must abort, or [Article|null, Source]
-     * otherwise (Article is null when the item was skipped due to an error).
-     *
-     * @return array{Article|null, Source}|null
+     * irrecoverably broken and the loop must abort, or a PersistItemResult
+     * otherwise (article is null when the item was skipped due to an error).
      */
     private function persistItem(
         FeedItem $item,
@@ -127,13 +126,13 @@ final readonly class FetchSourceHandler
         int $sourceId,
         \DateTimeImmutable $now,
         ?string $fingerprint,
-    ): ?array {
+    ): ?PersistItemResult {
         try {
             $article = $this->buildArticle($item, $source, $now, $fingerprint);
             $this->entityManager->persist($article);
             $this->entityManager->flush();
 
-            return [$article, $source];
+            return new PersistItemResult($article, $source);
         } catch (\Throwable $e) {
             $this->logger->debug('Skipped article "{url}": {error}', [
                 'url' => $item->url,
@@ -147,7 +146,7 @@ final readonly class FetchSourceHandler
             $this->entityManager->clear();
             $source = $this->entityManager->find(Source::class, $sourceId);
 
-            return $source !== null ? [null, $source] : null;
+            return $source !== null ? new PersistItemResult(null, $source) : null;
         }
     }
 

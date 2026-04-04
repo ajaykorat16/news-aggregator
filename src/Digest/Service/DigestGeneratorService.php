@@ -6,6 +6,7 @@ namespace App\Digest\Service;
 
 use App\Article\Entity\Article;
 use App\Digest\Entity\DigestConfig;
+use App\Digest\ValueObject\GroupedArticles;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DigestGeneratorService
@@ -15,10 +16,7 @@ final readonly class DigestGeneratorService
     ) {
     }
 
-    /**
-     * @return array<string, list<Article>> Articles grouped by category slug
-     */
-    public function collectArticles(DigestConfig $config): array
+    public function collectArticles(DigestConfig $config): GroupedArticles
     {
         $qb = $this->entityManager
             ->getRepository(Article::class)
@@ -48,6 +46,6 @@ final readonly class DigestGeneratorService
             $grouped[$slug][] = $article;
         }
 
-        return $grouped;
+        return new GroupedArticles($grouped);
     }
 }

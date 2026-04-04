@@ -37,9 +37,9 @@ final readonly class GenerateDigestHandler
         }
 
         $groupedArticles = $this->generator->collectArticles($config);
-        $totalArticles = array_sum(array_map('count', $groupedArticles));
+        $totalArticles = $groupedArticles->totalCount();
 
-        if ($totalArticles === 0) {
+        if ($groupedArticles->isEmpty()) {
             $this->logger->info('Digest "{name}" skipped: no articles found', [
                 'name' => $config->getName(),
             ]);

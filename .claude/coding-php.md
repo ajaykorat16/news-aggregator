@@ -48,6 +48,14 @@
 - No `empty()` — use explicit checks (`=== null`, `=== ''`, `=== []`)
 - No `var_dump`, `dump`, `dd`, `print_r`
 
+## Arrays
+
+- **No untyped arrays** as return types or parameters at service boundaries
+- Return DTOs or value objects instead of associative arrays
+- Collections of objects: use typed `ArrayCollection` subclass with `@template-extends` docblock
+- `list<string>` for simple scalar lists is acceptable (e.g. keywords, category slugs)
+- Internal/private methods may use arrays if the scope is small and contained
+
 ## Domain Structure
 
 ```

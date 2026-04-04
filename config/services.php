@@ -64,4 +64,8 @@ return static function (ContainerConfigurator $container): void {
     // Wire default fetch interval for FetchScheduleProvider
     $services->set(\App\Source\Scheduler\FetchScheduleProvider::class)
         ->arg('$defaultIntervalMinutes', '%env(int:FETCH_DEFAULT_INTERVAL_MINUTES)%');
+
+    // Wire OpenRouter platform for AI alert evaluation
+    $services->set(\App\Notification\Service\AiAlertEvaluationService::class)
+        ->arg('$platform', service('ai.platform.openrouter'));
 };

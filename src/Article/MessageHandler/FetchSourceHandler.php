@@ -10,6 +10,8 @@ use App\Article\Service\ScoringServiceInterface;
 use App\Article\ValueObject\ArticleFingerprint;
 use App\Enrichment\Service\CategorizationServiceInterface;
 use App\Enrichment\Service\SummarizationServiceInterface;
+use App\Notification\Message\SendNotificationMessage;
+use App\Notification\Service\ArticleMatcherServiceInterface;
 use App\Shared\Entity\Category;
 use App\Shared\ValueObject\EnrichmentMethod;
 use App\Source\Entity\Source;
@@ -22,6 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsMessageHandler]
 final readonly class FetchSourceHandler
@@ -34,6 +37,8 @@ final readonly class FetchSourceHandler
         private CategorizationServiceInterface $categorization,
         private SummarizationServiceInterface $summarization,
         private ScoringServiceInterface $scoring,
+        private ArticleMatcherServiceInterface $articleMatcher,
+        private MessageBusInterface $messageBus,
         private ClockInterface $clock,
         private LoggerInterface $logger,
     ) {
@@ -51,6 +56,8 @@ final readonly class FetchSourceHandler
             $items = $this->feedParser->parse($feedContent);
             $now = $this->clock->now();
             $persisted = 0;
+            /** @var list<Article> $newArticles */
+            $newArticles = [];
 
             foreach ($items as $item) {
                 $fingerprint = $item->contentText !== null
@@ -63,11 +70,15 @@ final readonly class FetchSourceHandler
 
                 $article = $this->buildArticle($item, $source, $now, $fingerprint);
                 $this->entityManager->persist($article);
+                $newArticles[] = $article;
                 $persisted++;
             }
 
             $source->recordSuccess($now);
             $this->entityManager->flush();
+
+            // Match new articles against alert rules (after flush so articles have IDs)
+            $this->dispatchAlerts($newArticles);
 
             $this->logger->info('Fetched {source}: {count} new articles from {total} items', [
                 'source' => $source->getName(),
@@ -127,5 +138,30 @@ final readonly class FetchSourceHandler
         $article->setScore($this->scoring->score($article));
 
         return $article;
+    }
+
+    /**
+     * @param list<Article> $articles
+     */
+    private function dispatchAlerts(array $articles): void
+    {
+        foreach ($articles as $article) {
+            $articleId = $article->getId();
+            if ($articleId === null) {
+                continue;
+            }
+
+            $matches = $this->articleMatcher->match($article);
+            foreach ($matches as $match) {
+                $ruleId = $match->alertRule->getId();
+                if ($ruleId === null) {
+                    continue;
+                }
+
+                $this->messageBus->dispatch(
+                    new SendNotificationMessage($ruleId, $articleId, $match->matchedKeywords),
+                );
+            }
+        }
     }
 }

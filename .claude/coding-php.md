@@ -48,6 +48,21 @@
 - No `empty()` — use explicit checks (`=== null`, `=== ''`, `=== []`)
 - No `var_dump`, `dump`, `dd`, `print_r`
 
+## Arrays
+
+- **No untyped arrays** as return types or parameters at service boundaries
+- Associative arrays (`array{key: type}`) → DTOs or value objects
+- Collections of domain objects → typed `ArrayCollection` subclass with `@template-extends`
+  ```php
+  /** @template-extends ArrayCollection<int, FeedItem> */
+  final class FeedItemCollection extends ArrayCollection {}
+  ```
+- Domain primitives → value objects (model IDs, URLs, fingerprints — not raw strings)
+- `list<string>` only for truly generic scalars (HTML tag names, SQL columns)
+  - Keywords, slugs, model IDs → value objects or typed collections
+- Internal/private methods may use plain arrays if scope is small
+- **FQCN**: always import via `use`, never `\App\...` inline — enforced by ECS `FullyQualifiedStrictTypesFixer`
+
 ## Domain Structure
 
 ```

@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
 
@@ -32,9 +33,10 @@ final class ArticleMatcherServiceTest extends TestCase
         $article = $this->createArticle('Major earthquake strikes region');
 
         $results = $matcher->match($article);
+        $resultsArray = $results->toArray();
 
-        self::assertCount(1, $results);
-        self::assertSame(['earthquake'], $results[0]->matchedKeywords);
+        self::assertCount(1, $resultsArray);
+        self::assertSame(['earthquake'], $resultsArray[0]->matchedKeywords);
     }
 
     public function testMatchesKeywordInContent(): void
@@ -47,9 +49,10 @@ final class ArticleMatcherServiceTest extends TestCase
         $article = $this->createArticle('Security Update', 'Critical vulnerability found in software');
 
         $results = $matcher->match($article);
+        $resultsArray = $results->toArray();
 
-        self::assertCount(1, $results);
-        self::assertSame(['vulnerability'], $results[0]->matchedKeywords);
+        self::assertCount(1, $resultsArray);
+        self::assertSame(['vulnerability'], $resultsArray[0]->matchedKeywords);
     }
 
     public function testNoMatchReturnsEmpty(): void
@@ -102,7 +105,7 @@ final class ArticleMatcherServiceTest extends TestCase
 
         $em = $this->createStub(EntityManagerInterface::class);
         $em->method('getRepository')->willReturnCallback(
-            static fn (string $class): \PHPUnit\Framework\MockObject\Stub => $class === AlertRule::class ? $ruleRepo : $logRepo,
+            static fn (string $class): Stub => $class === AlertRule::class ? $ruleRepo : $logRepo,
         );
 
         return new ArticleMatcherService($em, new MockClock('2026-04-04 12:00:00'));

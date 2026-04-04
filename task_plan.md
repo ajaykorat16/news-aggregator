@@ -641,6 +641,22 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 - [ ] 14.4 Write RFC/proposal for symfony/ai: describe the problem, our `PlatformInterface` decorator approach, configuration via bundle config, and how it complements `FailoverPlatform`.
 - [ ] 14.5 Extract, clean up, add tests, and submit PR to `symfony/ai`.
 
+### Refactor: Replace arrays with typed objects (completed)
+> Replaced untyped arrays at service boundaries with DTOs, value objects, and typed collections.
+
+- [x] DTOs: `ModelQualityStats`, `FetchResult`, `PersistItemResult`, `GroupedArticles`
+- [x] Typed collections: `FeedItemCollection`, `MatchResultCollection`, `ArticleCollection`, `ModelIdCollection`, `ModelQualityStatsMap`
+- [x] Value objects: `ModelId` (wraps model ID string)
+- [x] ECS: `FullyQualifiedStrictTypesFixer` added — auto-converts inline FQCN to use imports
+- [x] Guidelines: `.claude/coding-php.md` "Arrays" section updated
+- Intentionally kept as `list<string>`:
+  - `AlertRule.keywords` / `.categories` — JSON entity fields, simple filter strings
+  - `MatchResult.matchedKeywords` / `SendNotificationMessage.matchedKeywords` — transient notification data
+  - `ModelFailoverPlatform.fallbackModels` — config-level model IDs
+  - `RuleBasedCategorizationService::CATEGORY_KEYWORDS` — static constant
+  - `RuleBasedSummarizationService.extractSentences()` — private helper
+  - `User.roles` — Symfony security convention
+
 ---
 
 ## Resolved Questions

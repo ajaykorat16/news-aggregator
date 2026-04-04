@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\AI\Service;
 
+use App\Shared\AI\ValueObject\ModelQualityStats;
+use App\Shared\AI\ValueObject\ModelQualityStatsMap;
 use Psr\Cache\CacheItemPoolInterface;
 
 final class ModelQualityTracker
@@ -27,27 +29,21 @@ final class ModelQualityTracker
         $this->updateStats($modelId, accepted: false);
     }
 
-    /**
-     * @return array{accepted: int, rejected: int, acceptance_rate: float}
-     */
-    public function getStats(string $modelId): array
+    public function getStats(string $modelId): ModelQualityStats
     {
         $data = $this->loadStats($modelId);
 
         $total = $data['accepted'] + $data['rejected'];
         $rate = $total > 0 ? $data['accepted'] / $total : 0.0;
 
-        return [
-            'accepted' => $data['accepted'],
-            'rejected' => $data['rejected'],
-            'acceptance_rate' => round($rate, 4),
-        ];
+        return new ModelQualityStats(
+            accepted: $data['accepted'],
+            rejected: $data['rejected'],
+            acceptanceRate: round($rate, 4),
+        );
     }
 
-    /**
-     * @return array<string, array{accepted: int, rejected: int, acceptance_rate: float}>
-     */
-    public function getAllStats(): array
+    public function getAllStats(): ModelQualityStatsMap
     {
         $item = $this->cache->getItem(self::CACHE_PREFIX . 'index');
         /** @var list<string> $modelIds */
@@ -58,7 +54,7 @@ final class ModelQualityTracker
             $stats[$modelId] = $this->getStats($modelId);
         }
 
-        return $stats;
+        return new ModelQualityStatsMap($stats);
     }
 
     private function updateStats(string $modelId, bool $accepted): void

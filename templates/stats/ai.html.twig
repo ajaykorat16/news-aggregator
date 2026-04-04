@@ -24,8 +24,8 @@
                             <td>{{ data.rejected }}</td>
                             <td>
                                 <div class="flex items-center gap-2">
-                                    <progress class="progress {{ data.acceptance_rate > 0.7 ? 'progress-success' : (data.acceptance_rate > 0.4 ? 'progress-warning' : 'progress-error') }} w-20" value="{{ (data.acceptance_rate * 100)|round }}" max="100"></progress>
-                                    <span class="text-sm">{{ (data.acceptance_rate * 100)|round(1) }}%</span>
+                                    <progress class="progress {{ data.acceptanceRate > 0.7 ? 'progress-success' : (data.acceptanceRate > 0.4 ? 'progress-warning' : 'progress-error') }} w-20" value="{{ (data.acceptanceRate * 100)|round }}" max="100"></progress>
+                                    <span class="text-sm">{{ (data.acceptanceRate * 100)|round(1) }}%</span>
                                 </div>
                             </td>
                         </tr>
@@ -41,7 +41,7 @@
     {% else %}
         <div class="flex flex-wrap gap-2">
             {% for model in freeModels %}
-                <span class="badge badge-outline">{{ model }}</span>
+                <span class="badge badge-outline">{{ model.value }}</span>
             {% endfor %}
         </div>
     {% endif %}

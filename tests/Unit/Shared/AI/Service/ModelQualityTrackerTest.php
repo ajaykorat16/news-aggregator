@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Shared\AI\Service;
 
 use App\Shared\AI\Service\ModelQualityTracker;
+use App\Shared\AI\ValueObject\ModelQualityStats;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
@@ -23,9 +24,9 @@ final class ModelQualityTrackerTest extends TestCase
     {
         $stats = $this->tracker->getStats('some-model');
 
-        self::assertSame(0, $stats['accepted']);
-        self::assertSame(0, $stats['rejected']);
-        self::assertSame(0.0, $stats['acceptance_rate']);
+        self::assertSame(0, $stats->accepted);
+        self::assertSame(0, $stats->rejected);
+        self::assertSame(0.0, $stats->acceptanceRate);
     }
 
     public function testRecordAcceptance(): void
@@ -36,9 +37,9 @@ final class ModelQualityTrackerTest extends TestCase
 
         $stats = $this->tracker->getStats('model-a');
 
-        self::assertSame(2, $stats['accepted']);
-        self::assertSame(1, $stats['rejected']);
-        self::assertEqualsWithDelta(0.6667, $stats['acceptance_rate'], 0.001);
+        self::assertSame(2, $stats->accepted);
+        self::assertSame(1, $stats->rejected);
+        self::assertEqualsWithDelta(0.6667, $stats->acceptanceRate, 0.001);
     }
 
     public function testGetAllStats(): void
@@ -49,7 +50,8 @@ final class ModelQualityTrackerTest extends TestCase
         $all = $this->tracker->getAllStats();
 
         self::assertCount(2, $all);
-        self::assertArrayHasKey('model-x', $all);
-        self::assertArrayHasKey('model-y', $all);
+        self::assertTrue($all->containsKey('model-x'));
+        self::assertTrue($all->containsKey('model-y'));
+        self::assertContainsOnlyInstancesOf(ModelQualityStats::class, $all->toArray());
     }
 }

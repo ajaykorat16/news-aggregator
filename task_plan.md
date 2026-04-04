@@ -629,6 +629,15 @@ All PRs target `main`. Each PR should pass all quality checks (`make quality`) b
 - [ ] 13.12 Final README polish: badges (CI status, license, PHP version), screenshots, architecture diagram preview, quickstart guide
 - [ ] 13.13 Update CHANGELOG.md with initial release notes
 
+### Phase 14: ModelFailoverPlatform Extraction to Symfony AI
+> Analyse and plan extraction of `ModelFailoverPlatform` as a contribution to `symfony/ai-platform`.
+
+- [ ] 14.1 Analyse gap: Symfony AI's `FailoverPlatform` chains platforms (same model), but there's no native support for model-level failover on a single platform. Document the use case (single provider, multiple free models).
+- [ ] 14.2 Research existing Symfony AI issues/PRs for model failover — check if someone already proposed this or if there's a design reason it doesn't exist.
+- [ ] 14.3 Design the contribution: should it be a new component (`ModelFailoverPlatform`), an extension to `FailoverPlatform`, or a new option on `Platform::invoke()`? Consider backward compatibility and the existing `FailoverPlatform` contract.
+- [ ] 14.4 Write RFC/proposal for symfony/ai: describe the problem, our `PlatformInterface` decorator approach, configuration via bundle config, and how it complements `FailoverPlatform`.
+- [ ] 14.5 Extract, clean up, add tests, and submit PR to `symfony/ai`.
+
 ---
 
 ## Resolved Questions

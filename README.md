@@ -81,8 +81,8 @@ Copy `.env.example` to `.env.local` and adjust:
 | `OPENROUTER_API_KEY` | OpenRouter API key (optional) | `sk-or-...` |
 | `NOTIFIER_CHATTER_DSN` | Notification transport DSN | see below |
 | `FETCH_DEFAULT_INTERVAL_MINUTES` | How often to fetch feeds | `60` |
-| `ARTICLE_RETENTION_DAYS` | Article retention period | `90` |
-| `LOG_RETENTION_DAYS` | Notification/digest log retention | `30` |
+| `RETENTION_ARTICLES` | Article retention period | `90` |
+| `RETENTION_LOGS` | Notification/digest log retention | `30` |
 
 Generate `ADMIN_PASSWORD_HASH`:
 ```bash
@@ -175,8 +175,8 @@ Old articles and logs are pruned automatically by the `app:cleanup` command (run
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ARTICLE_RETENTION_DAYS` | `90` | Articles older than this are deleted |
-| `LOG_RETENTION_DAYS` | `30` | Notification and digest logs older than this are deleted |
+| `RETENTION_ARTICLES` | `90` | Articles older than this are deleted |
+| `RETENTION_LOGS` | `30` | Notification and digest logs older than this are deleted |
 
 Run manually:
 ```bash

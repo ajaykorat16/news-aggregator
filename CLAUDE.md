@@ -127,8 +127,8 @@ src/
 | `OPENROUTER_BLOCKED_MODELS` | Comma-separated blocked model IDs | (empty) |
 | `NOTIFIER_CHATTER_DSN` | Notifier transport DSN | (optional — alerts disabled without it) |
 | `FETCH_DEFAULT_INTERVAL_MINUTES` | Default fetch interval | `60` |
-| `ARTICLE_RETENTION_DAYS` | Article retention period | `90` |
-| `LOG_RETENTION_DAYS` | Notification/digest log retention | `30` |
+| `RETENTION_ARTICLES` | Article retention period | `90` |
+| `RETENTION_LOGS` | Notification/digest log retention | `30` |
 | `DATABASE_URL` | PostgreSQL DSN | (set in compose) |
 
 ## Guidelines

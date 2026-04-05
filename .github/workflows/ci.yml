@@ -50,8 +50,8 @@ jobs:
           '
       - name: Install dependencies
         run: docker compose run --rm -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php composer install --no-interaction --no-progress
-      - name: Create test database schema
-        run: docker compose run --rm -e APP_ENV=test -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php php bin/console doctrine:schema:create --no-interaction
+      - name: Ensure test database schema
+        run: docker compose run --rm -e APP_ENV=test -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php php bin/console doctrine:schema:update --force --no-interaction
       - name: Unit tests
         run: docker compose run --rm -e APP_ENV=test -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php vendor/bin/phpunit --testsuite=unit
       - name: Integration tests

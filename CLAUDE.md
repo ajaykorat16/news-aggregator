@@ -6,16 +6,9 @@ News Aggregator — self-hosted, AI-enhanced RSS/Atom aggregator. Symfony 8.0 + 
 
 See `PITCH.md` for full project overview.
 
-## Planning Files
+## Planning Archive
 
-This project uses file-based planning. **These rules are mandatory:**
-
-1. **After completing any task**: check off the task in `task_plan.md` (`- [ ]` → `- [x]`)
-2. **After completing any task**: log what was done in `progress.md` under the current session
-3. **Before starting work**: read `task_plan.md` and `progress.md` to understand current state
-4. **When encountering blockers or errors**: log them in the Error Log section of `task_plan.md`
-5. **When making architectural decisions**: update `findings.md` with the reasoning
-6. **Never skip these updates** — they are as important as the code itself
+Initial development planning files (task plan, progress log, research findings) are archived in `docs/archive/`. These document the full build-out from Phase 1-13 and are kept for historical reference.
 
 ## Quick Start
 

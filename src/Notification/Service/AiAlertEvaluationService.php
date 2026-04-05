@@ -12,7 +12,7 @@ use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\AI\Platform\PlatformInterface;
 
-final readonly class AiAlertEvaluationService
+final readonly class AiAlertEvaluationService implements AiAlertEvaluationServiceInterface
 {
     private const string MODEL = 'openrouter/free';
 

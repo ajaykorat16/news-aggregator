@@ -7,8 +7,8 @@ namespace App\Notification\MessageHandler;
 use App\Article\Entity\Article;
 use App\Notification\Entity\AlertRule;
 use App\Notification\Message\SendNotificationMessage;
-use App\Notification\Service\AiAlertEvaluationService;
-use App\Notification\Service\NotificationDispatchService;
+use App\Notification\Service\AiAlertEvaluationServiceInterface;
+use App\Notification\Service\NotificationDispatchServiceInterface;
 use App\Notification\ValueObject\EvaluationResult;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -19,8 +19,8 @@ final readonly class SendNotificationHandler
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private NotificationDispatchService $dispatchService,
-        private AiAlertEvaluationService $aiEvaluationService,
+        private NotificationDispatchServiceInterface $dispatchService,
+        private AiAlertEvaluationServiceInterface $aiEvaluationService,
         private LoggerInterface $logger,
     ) {
     }

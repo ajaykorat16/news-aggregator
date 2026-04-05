@@ -7,8 +7,8 @@ namespace App\Digest\MessageHandler;
 use App\Digest\Entity\DigestConfig;
 use App\Digest\Entity\DigestLog;
 use App\Digest\Message\GenerateDigestMessage;
-use App\Digest\Service\DigestGeneratorService;
-use App\Digest\Service\DigestSummaryService;
+use App\Digest\Service\DigestGeneratorServiceInterface;
+use App\Digest\Service\DigestSummaryServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Clock\ClockInterface;
 use Psr\Log\LoggerInterface;
@@ -21,8 +21,8 @@ final readonly class GenerateDigestHandler
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private DigestGeneratorService $generator,
-        private DigestSummaryService $summary,
+        private DigestGeneratorServiceInterface $generator,
+        private DigestSummaryServiceInterface $summary,
         private NotifierInterface $notifier,
         private ClockInterface $clock,
         private LoggerInterface $logger,

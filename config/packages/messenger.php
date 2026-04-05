@@ -29,11 +29,6 @@ return static function (ContainerConfigurator $container): void {
         ],
     ]);
 
-    $container->extension('framework', [
-        'messenger' => [
-            'transports' => [
-                'scheduler_fetch' => 'symfony://scheduler_fetch',
-            ],
-        ],
-    ]);
+    // The scheduler_fetch transport is auto-registered by #[AsSchedule('fetch')]
+    // on FetchScheduleProvider — no manual config needed.
 };

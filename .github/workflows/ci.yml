@@ -14,25 +14,16 @@ jobs:
         check: [ecs, phpstan, rector]
     steps:
       - uses: actions/checkout@v5
-      - name: Build Docker images
-        run: docker compose build
-      - name: Start services
-        run: docker compose up -d
-      - name: Wait for app ready
-        run: |
-          timeout 300 bash -c '
-            until docker compose logs php 2>&1 | grep -q "PHP app ready!"; do
-              echo "Waiting for composer install + app boot..."
-              sleep 10
-            done
-          '
-          echo "App is ready"
+      - name: Build PHP image
+        run: docker compose build php
+      - name: Install dependencies
+        run: docker compose run --rm --no-deps php composer install --no-interaction --no-progress
       - name: Run ${{ matrix.check }}
         run: |
           case "${{ matrix.check }}" in
-            ecs) docker compose exec -T php vendor/bin/ecs check ;;
-            phpstan) docker compose exec -T php vendor/bin/phpstan analyse --memory-limit=512M ;;
-            rector) docker compose exec -T php vendor/bin/rector process --dry-run ;;
+            ecs) docker compose run --rm --no-deps php vendor/bin/ecs check ;;
+            phpstan) docker compose run --rm --no-deps php vendor/bin/phpstan analyse --memory-limit=512M ;;
+            rector) docker compose run --rm --no-deps php vendor/bin/rector process --dry-run ;;
           esac
 
   tests:
@@ -41,24 +32,24 @@ jobs:
     needs: quality
     steps:
       - uses: actions/checkout@v5
-      - name: Build Docker images
-        run: docker compose build
-      - name: Start services
-        run: docker compose up -d
-      - name: Wait for app ready
+      - name: Build and start full stack
+        run: docker compose up -d database pgbouncer
+      - name: Build PHP image
+        run: docker compose build php
+      - name: Install dependencies
+        run: docker compose run --rm --no-deps php composer install --no-interaction --no-progress
+      - name: Wait for database
         run: |
-          timeout 300 bash -c '
-            until docker compose logs php 2>&1 | grep -q "PHP app ready!"; do
-              echo "Waiting for composer install + app boot..."
-              sleep 10
+          timeout 60 bash -c '
+            until docker compose exec -T database pg_isready -U app -d app; do
+              sleep 2
             done
           '
-          echo "App is ready"
       - name: Create test database schema
-        run: docker compose exec -T -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app_test?serverVersion=17" php php bin/console doctrine:schema:create --no-interaction
+        run: docker compose run --rm -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app_test?serverVersion=17" php php bin/console doctrine:schema:create --no-interaction
       - name: Unit tests
-        run: docker compose exec -T php vendor/bin/phpunit --testsuite=unit
+        run: docker compose run --rm -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php vendor/bin/phpunit --testsuite=unit
       - name: Integration tests
-        run: docker compose exec -T php vendor/bin/phpunit --testsuite=integration
+        run: docker compose run --rm -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php vendor/bin/phpunit --testsuite=integration
       - name: Functional tests
-        run: docker compose exec -T php vendor/bin/phpunit --testsuite=functional
+        run: docker compose run --rm -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" php vendor/bin/phpunit --testsuite=functional

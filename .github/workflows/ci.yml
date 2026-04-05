@@ -17,7 +17,17 @@ jobs:
       - name: Build Docker images
         run: docker compose build
       - name: Start services
-        run: docker compose up -d --wait
+        run: docker compose up -d
+      - name: Wait for PHP container ready
+        run: |
+          for i in $(seq 1 60); do
+            if docker compose exec -T php php bin/console --version 2>/dev/null; then
+              echo "PHP container ready"
+              break
+            fi
+            echo "Waiting for PHP... ($i/60)"
+            sleep 5
+          done
       - name: Run ${{ matrix.check }}
         run: |
           case "${{ matrix.check }}" in
@@ -35,10 +45,18 @@ jobs:
       - name: Build Docker images
         run: docker compose build
       - name: Start services
-        run: docker compose up -d --wait
-      - name: Wait for DB
-        run: docker compose exec -T php php bin/console dbal:run-sql "SELECT 1" --env=test || sleep 5
-      - name: Run migrations (test DB)
+        run: docker compose up -d
+      - name: Wait for PHP container ready
+        run: |
+          for i in $(seq 1 60); do
+            if docker compose exec -T php php bin/console --version 2>/dev/null; then
+              echo "PHP container ready"
+              break
+            fi
+            echo "Waiting for PHP... ($i/60)"
+            sleep 5
+          done
+      - name: Create test database schema
         run: docker compose exec -T -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app_test?serverVersion=17" php php bin/console doctrine:schema:create --no-interaction
       - name: Unit tests
         run: docker compose exec -T php vendor/bin/phpunit --testsuite=unit

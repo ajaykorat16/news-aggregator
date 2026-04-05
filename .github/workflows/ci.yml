@@ -3,89 +3,182 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - 'tests/**'
+      - 'composer.*'
+      - 'phpstan.neon'
+      - 'ecs.php'
+      - 'rector.php'
+      - 'phpunit.dist.xml'
+      - 'Dockerfile'
+      - 'compose*.yaml'
+      - '.github/workflows/ci.yml'
   pull_request:
 
 jobs:
-  build:
-    name: Build
+  ecs:
+    name: ECS
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - name: Build Docker images
-        run: docker compose build
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frankenphp_dev
+          load: true
+          tags: app-php-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+      - name: Composer install
+        run: docker compose run --rm --no-deps --entrypoint composer -v "$HOME/.composer/cache:/tmp/composer-cache" -e COMPOSER_CACHE_DIR=/tmp/composer-cache php install --no-interaction --prefer-dist --no-scripts
+      - name: ECS check
+        run: docker compose run --rm --no-deps --entrypoint "" php vendor/bin/ecs check
 
-  quality:
-    name: Code Quality
+  phpstan:
+    name: PHPStan
     runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        check: [ecs, phpstan, rector]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - name: Build image (cached from build job)
-        run: docker compose build php
-      - name: Run ${{ matrix.check }}
-        run: |
-          case "${{ matrix.check }}" in
-            ecs)
-              docker compose run --rm --no-deps php vendor/bin/ecs check
-              ;;
-            phpstan)
-              docker compose up -d database
-              docker compose exec -T database sh -c 'until pg_isready -U app; do sleep 1; done'
-              docker compose run --rm php bash -c "php bin/console cache:clear && vendor/bin/phpstan analyse --memory-limit=512M"
-              ;;
-            rector)
-              docker compose run --rm --no-deps php vendor/bin/rector process --dry-run
-              ;;
-          esac
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frankenphp_dev
+          load: true
+          tags: app-php-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+      - name: Composer install
+        run: docker compose run --rm --no-deps --entrypoint composer -v "$HOME/.composer/cache:/tmp/composer-cache" -e COMPOSER_CACHE_DIR=/tmp/composer-cache php install --no-interaction --prefer-dist --no-scripts
+      - name: Warm Symfony cache
+        run: docker compose run --rm --no-deps --entrypoint "" php php bin/console cache:warmup
+      - name: PHPStan
+        run: docker compose run --rm --no-deps --entrypoint "" php vendor/bin/phpstan analyse --memory-limit=512M
+
+  rector:
+    name: Rector
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frankenphp_dev
+          load: true
+          tags: app-php-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+      - name: Composer install
+        run: docker compose run --rm --no-deps --entrypoint composer -v "$HOME/.composer/cache:/tmp/composer-cache" -e COMPOSER_CACHE_DIR=/tmp/composer-cache php install --no-interaction --prefer-dist --no-scripts
+      - name: Rector dry-run
+        run: docker compose run --rm --no-deps --entrypoint "" php vendor/bin/rector process --dry-run
 
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: build
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - name: Build image
-        run: docker compose build php
-      - name: Run unit tests
-        run: docker compose run --rm --no-deps php vendor/bin/phpunit --testsuite=unit
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frankenphp_dev
+          load: true
+          tags: app-php-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+      - name: Composer install
+        run: docker compose run --rm --no-deps --entrypoint composer -v "$HOME/.composer/cache:/tmp/composer-cache" -e COMPOSER_CACHE_DIR=/tmp/composer-cache php install --no-interaction --prefer-dist --no-scripts
+      - name: Unit tests
+        run: docker compose run --rm --no-deps --entrypoint "" php vendor/bin/phpunit --testsuite=unit
 
-  integration-tests:
-    name: Integration + Functional Tests
+  tests:
+    name: Integration + Functional + E2E
     runs-on: ubuntu-latest
-    needs: build
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - name: Build and start
-        run: docker compose build && docker compose up -d --wait
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frankenphp_dev
+          load: true
+          tags: app-php-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+      - name: Start full stack
+        run: docker compose up -d --wait
       - name: Ensure test DB schema
         run: docker compose exec -T -e APP_ENV=test php php bin/console doctrine:schema:update --force --no-interaction
       - name: Integration tests
         run: docker compose exec -T php vendor/bin/phpunit --testsuite=integration
       - name: Functional tests
         run: docker compose exec -T php vendor/bin/phpunit --testsuite=functional
+      - name: E2E tests (Panther)
+        run: docker compose exec -T -e PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-gpu --ignore-certificate-errors --disable-dev-shm-usage --headless" php vendor/bin/phpunit --testsuite=e2e
 
   mutation-tests:
     name: Mutation Tests
     runs-on: ubuntu-latest
     needs: unit-tests
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
-      - name: Build image
-        run: docker compose build php
-      - name: Run Infection
-        run: docker compose run --rm --no-deps php vendor/bin/infection --threads=4 --test-framework-options="--testsuite=unit" --min-msi=80 --min-covered-msi=90 || true
-
-  e2e-tests:
-    name: E2E Tests (Panther)
-    runs-on: ubuntu-latest
-    needs: integration-tests
-    steps:
-      - uses: actions/checkout@v5
-      - name: Build and start full stack
-        run: docker compose build && docker compose up -d --wait
-      - name: Run Panther E2E tests
-        run: docker compose exec -T -e PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-gpu --ignore-certificate-errors --disable-dev-shm-usage --headless" php vendor/bin/phpunit --testsuite=e2e
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: frankenphp_dev
+          load: true
+          tags: app-php-dev:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+      - name: Composer install
+        run: docker compose run --rm --no-deps --entrypoint composer -v "$HOME/.composer/cache:/tmp/composer-cache" -e COMPOSER_CACHE_DIR=/tmp/composer-cache php install --no-interaction --prefer-dist --no-scripts
+      - name: Infection
+        run: |
+          docker compose run --rm --no-deps --entrypoint "" \
+            -e XDEBUG_MODE=coverage \
+            php vendor/bin/infection \
+              --threads=4 \
+              --test-framework-options="--testsuite=unit" \
+              --min-msi=80 --min-covered-msi=90 || true

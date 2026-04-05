@@ -6,58 +6,86 @@ on:
   pull_request:
 
 jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build Docker images
+        run: docker compose build
+
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
+    needs: build
     strategy:
       fail-fast: false
       matrix:
         check: [ecs, phpstan, rector]
     steps:
       - uses: actions/checkout@v5
-      - name: Build and start
-        run: docker compose build && docker compose up -d
-      - name: Wait for app ready
-        run: |
-          timeout 300 bash -c '
-            until docker compose logs php 2>&1 | grep -q "PHP app ready!"; do
-              echo "Waiting..."
-              sleep 10
-            done
-          '
+      - name: Build image (cached from build job)
+        run: docker compose build php
       - name: Run ${{ matrix.check }}
         run: |
           case "${{ matrix.check }}" in
-            ecs) docker compose exec -T php vendor/bin/ecs check ;;
-            phpstan) docker compose exec -T php vendor/bin/phpstan analyse --memory-limit=512M ;;
-            rector) docker compose exec -T php vendor/bin/rector process --dry-run ;;
+            ecs)
+              docker compose run --rm --no-deps php vendor/bin/ecs check
+              ;;
+            phpstan)
+              docker compose up -d database
+              docker compose exec -T database sh -c 'until pg_isready -U app; do sleep 1; done'
+              docker compose run --rm php bash -c "php bin/console cache:clear && vendor/bin/phpstan analyse --memory-limit=512M"
+              ;;
+            rector)
+              docker compose run --rm --no-deps php vendor/bin/rector process --dry-run
+              ;;
           esac
 
-  tests:
-    name: Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
-    needs: quality
+    needs: build
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        run: docker compose build php
+      - name: Run unit tests
+        run: docker compose run --rm --no-deps php vendor/bin/phpunit --testsuite=unit
+
+  integration-tests:
+    name: Integration + Functional Tests
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v5
       - name: Build and start
-        run: docker compose build && docker compose up -d
-      - name: Wait for app ready
-        run: |
-          timeout 300 bash -c '
-            until docker compose logs php 2>&1 | grep -q "PHP app ready!"; do
-              echo "Waiting..."
-              sleep 10
-            done
-          '
+        run: docker compose build && docker compose up -d --wait
       - name: Ensure test DB schema
-        run: docker compose exec -T -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17" -e APP_ENV=test php php bin/console doctrine:schema:update --force --no-interaction
-      - name: Unit tests
-        run: docker compose exec -T php vendor/bin/phpunit --testsuite=unit
+        run: docker compose exec -T -e APP_ENV=test php php bin/console doctrine:schema:update --force --no-interaction
       - name: Integration tests
         run: docker compose exec -T php vendor/bin/phpunit --testsuite=integration
       - name: Functional tests
         run: docker compose exec -T php vendor/bin/phpunit --testsuite=functional
-      - name: Mutation tests
-        run: docker compose exec -T php vendor/bin/infection --threads=4 --test-framework-options="--testsuite=unit" --min-msi=80 --min-covered-msi=90 || true
-      - name: E2E tests (Panther)
+
+  mutation-tests:
+    name: Mutation Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        run: docker compose build php
+      - name: Run Infection
+        run: docker compose run --rm --no-deps php vendor/bin/infection --threads=4 --test-framework-options="--testsuite=unit" --min-msi=80 --min-covered-msi=90 || true
+
+  e2e-tests:
+    name: E2E Tests (Panther)
+    runs-on: ubuntu-latest
+    needs: integration-tests
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build and start full stack
+        run: docker compose build && docker compose up -d --wait
+      - name: Run Panther E2E tests
         run: docker compose exec -T -e PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-gpu --ignore-certificate-errors --disable-dev-shm-usage --headless" php vendor/bin/phpunit --testsuite=e2e

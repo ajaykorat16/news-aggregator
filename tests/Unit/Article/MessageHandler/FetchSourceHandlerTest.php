@@ -11,6 +11,7 @@ use App\Article\Service\ScoringServiceInterface;
 use App\Enrichment\Service\CategorizationServiceInterface;
 use App\Enrichment\Service\KeywordExtractionServiceInterface;
 use App\Enrichment\Service\SummarizationServiceInterface;
+use App\Enrichment\Service\TranslationServiceInterface;
 use App\Enrichment\ValueObject\EnrichmentResult;
 use App\Notification\Service\ArticleMatcherServiceInterface;
 use App\Shared\Entity\Category;
@@ -84,6 +85,9 @@ final class FetchSourceHandlerTest extends TestCase
         $this->em->method('getRepository')->willReturn($repository);
         $this->em->method('find')->willReturn($this->source);
 
+        $translation = $this->createStub(TranslationServiceInterface::class);
+        $translation->method('translate')->willReturnArgument(0);
+
         $this->handler = new FetchSourceHandler(
             $this->em,
             $this->fetcher,
@@ -91,6 +95,7 @@ final class FetchSourceHandlerTest extends TestCase
             $dedup,
             $categorization,
             $summarization,
+            $translation,
             $keywordExtraction,
             $this->createStub(ScoringServiceInterface::class),
             $this->createStub(ArticleMatcherServiceInterface::class),

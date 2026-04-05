@@ -14,6 +14,7 @@ use App\Article\ValueObject\PersistItemResult;
 use App\Enrichment\Service\CategorizationServiceInterface;
 use App\Enrichment\Service\KeywordExtractionServiceInterface;
 use App\Enrichment\Service\SummarizationServiceInterface;
+use App\Enrichment\Service\TranslationServiceInterface;
 use App\Enrichment\ValueObject\EnrichmentResult;
 use App\Notification\Message\SendNotificationMessage;
 use App\Notification\Service\ArticleMatcherServiceInterface;
@@ -42,6 +43,7 @@ final readonly class FetchSourceHandler
         private DeduplicationServiceInterface $deduplication,
         private CategorizationServiceInterface $categorization,
         private SummarizationServiceInterface $summarization,
+        private TranslationServiceInterface $translation,
         private KeywordExtractionServiceInterface $keywordExtraction,
         private ScoringServiceInterface $scoring,
         private ArticleMatcherServiceInterface $articleMatcher,
@@ -175,6 +177,8 @@ final readonly class FetchSourceHandler
             $article->setKeywords($keywords);
         }
 
+        $this->applyTranslation($article, $source);
+
         $article->setScore($this->scoring->score($article));
 
         return $article;
@@ -211,6 +215,25 @@ final readonly class FetchSourceHandler
 
         $article->setEnrichmentMethod($aiResult instanceof EnrichmentResult ? EnrichmentMethod::Ai : EnrichmentMethod::RuleBased);
         $article->setAiModelUsed($aiResult?->modelUsed);
+    }
+
+    private function applyTranslation(Article $article, Source $source): void
+    {
+        $language = $source->getLanguage();
+        if ($language === null || $language === 'en') {
+            return;
+        }
+
+        $article->setTitleOriginal($article->getTitle());
+        $translated = $this->translation->translate($article->getTitle(), $language, 'en');
+        $article->setTitle($translated);
+
+        $summary = $article->getSummary();
+        if ($summary !== null) {
+            $article->setSummaryOriginal($summary);
+            $translatedSummary = $this->translation->translate($summary, $language, 'en');
+            $article->setSummary($translatedSummary);
+        }
     }
 
     private function dispatchAlerts(ArticleCollection $articles): void

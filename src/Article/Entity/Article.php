@@ -60,6 +60,12 @@ class Article
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $publishedAt = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $titleOriginal = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $summaryOriginal = null;
+
     /**
      * @var list<string>|null
      */
@@ -189,6 +195,31 @@ class Article
     public function setPublishedAt(?\DateTimeImmutable $publishedAt): void
     {
         $this->publishedAt = $publishedAt;
+    }
+
+    public function getTitleOriginal(): ?string
+    {
+        return $this->titleOriginal;
+    }
+
+    public function setTitleOriginal(?string $titleOriginal): void
+    {
+        $this->titleOriginal = $titleOriginal;
+    }
+
+    public function getSummaryOriginal(): ?string
+    {
+        return $this->summaryOriginal;
+    }
+
+    public function setSummaryOriginal(?string $summaryOriginal): void
+    {
+        $this->summaryOriginal = $summaryOriginal;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = $title;
     }
 
     /**

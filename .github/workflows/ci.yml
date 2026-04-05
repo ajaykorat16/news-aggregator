@@ -18,16 +18,15 @@ jobs:
         run: docker compose build
       - name: Start services
         run: docker compose up -d
-      - name: Wait for PHP container ready
+      - name: Wait for app ready
         run: |
-          for i in $(seq 1 60); do
-            if docker compose exec -T php php bin/console --version 2>/dev/null; then
-              echo "PHP container ready"
-              break
-            fi
-            echo "Waiting for PHP... ($i/60)"
-            sleep 5
-          done
+          timeout 300 bash -c '
+            until docker compose logs php 2>&1 | grep -q "PHP app ready!"; do
+              echo "Waiting for composer install + app boot..."
+              sleep 10
+            done
+          '
+          echo "App is ready"
       - name: Run ${{ matrix.check }}
         run: |
           case "${{ matrix.check }}" in
@@ -46,16 +45,15 @@ jobs:
         run: docker compose build
       - name: Start services
         run: docker compose up -d
-      - name: Wait for PHP container ready
+      - name: Wait for app ready
         run: |
-          for i in $(seq 1 60); do
-            if docker compose exec -T php php bin/console --version 2>/dev/null; then
-              echo "PHP container ready"
-              break
-            fi
-            echo "Waiting for PHP... ($i/60)"
-            sleep 5
-          done
+          timeout 300 bash -c '
+            until docker compose logs php 2>&1 | grep -q "PHP app ready!"; do
+              echo "Waiting for composer install + app boot..."
+              sleep 10
+            done
+          '
+          echo "App is ready"
       - name: Create test database schema
         run: docker compose exec -T -e DATABASE_URL="postgresql://app:!ChangeMe!@database:5432/app_test?serverVersion=17" php php bin/console doctrine:schema:create --no-interaction
       - name: Unit tests

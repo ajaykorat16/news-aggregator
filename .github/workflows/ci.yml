@@ -95,12 +95,24 @@ jobs:
         run: docker compose up -d database pgbouncer && docker compose exec -T database sh -c 'until pg_isready -U app; do sleep 1; done'
       - name: Start app (vendor already installed — entrypoint skips composer install)
         run: docker compose up -d --wait --no-build php
+      # Tests bypass PgBouncer and connect directly to database.
+      # Compose env DATABASE_URL (pgbouncer) overrides .env.test, so we must pass it explicitly.
       - name: Ensure test DB schema
-        run: docker compose exec -T -e APP_ENV=test php php bin/console doctrine:schema:update --force --no-interaction
-      - run: docker compose exec -T php vendor/bin/phpunit --testsuite=integration
-      - run: docker compose exec -T php vendor/bin/phpunit --testsuite=functional
+        env:
+          DB_DIRECT: "postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17&charset=utf8"
+        run: docker compose exec -T -e APP_ENV=test -e DATABASE_URL="$DB_DIRECT" php php bin/console doctrine:schema:update --force --no-interaction
+      - name: Integration tests
+        env:
+          DB_DIRECT: "postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17&charset=utf8"
+        run: docker compose exec -T -e DATABASE_URL="$DB_DIRECT" php vendor/bin/phpunit --testsuite=integration
+      - name: Functional tests
+        env:
+          DB_DIRECT: "postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17&charset=utf8"
+        run: docker compose exec -T -e DATABASE_URL="$DB_DIRECT" php vendor/bin/phpunit --testsuite=functional
       - name: E2E tests
-        run: docker compose exec -T -e PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-gpu --ignore-certificate-errors --disable-dev-shm-usage --headless" php vendor/bin/phpunit --testsuite=e2e
+        env:
+          DB_DIRECT: "postgresql://app:!ChangeMe!@database:5432/app?serverVersion=17&charset=utf8"
+        run: docker compose exec -T -e DATABASE_URL="$DB_DIRECT" -e PANTHER_CHROME_ARGUMENTS="--no-sandbox --disable-gpu --ignore-certificate-errors --disable-dev-shm-usage --headless" php vendor/bin/phpunit --testsuite=e2e
 
   # --- After unit tests ---
 

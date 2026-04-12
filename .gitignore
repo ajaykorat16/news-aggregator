@@ -72,3 +72,4 @@ infection.log
 /phpunit.xml
 /.phpunit.cache/
 ###< phpunit/phpunit ###
+.playwright-mcp

@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     environment:
       SERVER_NAME: ${SERVER_NAME:-localhost}, php:80
-      DEFAULT_URI: https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-8443}
+      DEFAULT_URI: ${DEFAULT_URI:-https://${SERVER_NAME:-localhost}:${HTTPS_PORT:-8443}}
       MERCURE_PUBLISHER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       MERCURE_SUBSCRIBER_JWT_KEY: ${CADDY_MERCURE_JWT_SECRET:-!ChangeThisMercureHubJWTSecretKey!}
       DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-!ChangeMe!}@pgbouncer:5432/${POSTGRES_DB:-app}?serverVersion=${POSTGRES_VERSION:-17}&charset=${POSTGRES_CHARSET:-utf8}
@@ -30,11 +30,11 @@ services:
         published: ${HTTP3_PORT:-8443}
         protocol: udp
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost/health"]
+      test: ["CMD", "php", "-r", "exit(false === @file_get_contents('http://localhost:2019/metrics', false, stream_context_create(['http' => ['timeout' => 5]])) ? 1 : 0);"]
       interval: 10s
-      timeout: 5s
+      timeout: 6s
       retries: 3
-      start_period: 30s
+      start_period: 60s
     depends_on:
       database:
         condition: service_healthy

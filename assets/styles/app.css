@@ -30,3 +30,7 @@ body {
 .htmx-request.htmx-indicator {
     display: flex;
 }
+
+.toast-top {
+    top: 50px;
+}

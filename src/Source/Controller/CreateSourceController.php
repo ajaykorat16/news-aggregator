@@ -67,6 +67,12 @@ final class CreateSourceController
             return new RedirectResponse($this->urlGenerator->generate('app_sources_new'));
         }
 
+        if ($this->sourceRepository->findByFeedUrl($feedUrl) instanceof Source) {
+            $this->controller->addFlash('error', 'A source with this feed URL already exists.');
+
+            return new RedirectResponse($this->urlGenerator->generate('app_sources_new'));
+        }
+
         $source = new Source($name, $feedUrl, $category, $this->clock->now());
         $source->setEnabled($enabled);
         $source->setFullTextEnabled($fullTextEnabled);

@@ -26,7 +26,7 @@ RUN <<-EOF
 		git
 	install-php-extensions \
 		@composer \
-		apcu \
+		apcu-5.1.24 \
 		intl \
 		opcache \
 		pdo_pgsql \
@@ -122,6 +122,12 @@ RUN composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scri
 
 # copy sources
 COPY --link --exclude=frankenphp/ . ./
+
+# Compile TypeScript assets
+RUN <<-EOF
+	curl -fsSL https://bun.sh/install | bash
+	/root/.bun/bin/bun build assets/ts/*.ts --outdir=assets/js/ --root=assets/ts
+EOF
 
 RUN <<-EOF
 	mkdir -p var/cache var/log var/share

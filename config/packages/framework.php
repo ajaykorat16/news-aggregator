@@ -7,6 +7,8 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 return static function (ContainerConfigurator $container): void {
     $container->extension('framework', [
         'secret' => '%env(APP_SECRET)%',
+        'trusted_proxies' => '%env(TRUSTED_PROXIES)%',
+        'trusted_headers' => ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-prefix'],
         // Note that the session will be started ONLY if you read or write from it.
         'session' => [
             'enabled' => true,

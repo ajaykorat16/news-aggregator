@@ -1,7 +1,8 @@
 # News Aggregator — Makefile
 # Usage: make <target>
 
-DOCKER_COMP = docker compose $(if $(wildcard .env.local),--env-file .env.local)
+DOCKER_COMP      = docker compose $(if $(wildcard .env.local),--env-file .env.local)
+DOCKER_COMP_PROD = docker compose -f compose.yaml -f compose.prod.yaml $(if $(wildcard .env.local),--env-file .env.local)
 PHP_CONT   = $(DOCKER_COMP) exec php
 PHP        = $(PHP_CONT) php
 CONSOLE    = $(PHP) bin/console
@@ -11,23 +12,40 @@ BUN        = $(PHP_CONT) bun
 .DEFAULT_GOAL := help
 
 ## —— Docker 🐳 ——————————————————————————————————
-.PHONY: build up down start restart logs sh worker-logs
+.PHONY: build up down start restart logs sh worker-logs build-prod up-prod down-prod start-prod restart-prod deploy
 
-build: ## Build Docker images
+build: ## Build Docker images (dev)
 	$(DOCKER_COMP) build --pull --no-cache
 
-up: ## Start containers in detached mode
+up: ## Start containers in detached mode (dev)
 	$(DOCKER_COMP) up -d --wait
 
-down: ## Stop and remove containers
+down: ## Stop and remove containers (dev)
 	$(DOCKER_COMP) down --remove-orphans
 
-start: build up ## Build and start containers
+start: build up ## Build and start containers (dev)
 
-restart: down up ## Restart containers
+restart: down up ## Restart containers (dev)
 
 logs: ## Follow container logs
 	$(DOCKER_COMP) logs -f
+
+build-prod: ## Build Docker images (prod)
+	$(DOCKER_COMP_PROD) build --pull --no-cache
+
+up-prod: ## Start containers in detached mode (prod)
+	$(DOCKER_COMP_PROD) up -d --wait
+
+down-prod: ## Stop and remove containers (prod)
+	$(DOCKER_COMP_PROD) down --remove-orphans
+
+start-prod: build-prod up-prod ## Build and start containers (prod)
+
+restart-prod: down-prod up-prod ## Restart containers (prod)
+
+deploy: up-prod ## Deploy: start prod containers then run migrations
+	$(DOCKER_COMP_PROD) exec php sh -c "DATABASE_URL=\"\$$DATABASE_DIRECT_URL\" php bin/console doctrine:database:create --if-not-exists"
+	$(DOCKER_COMP_PROD) exec php php bin/console doctrine:migrations:migrate --no-interaction --all-or-nothing
 
 sh: ## Open a shell in the PHP container
 	$(PHP_CONT) bash
@@ -109,11 +127,11 @@ ts-watch: ## Watch and compile TypeScript via Bun
 ## —— Database 💾 ——————————————————————————————————
 .PHONY: db-create db-drop db-reset export-postgres import-postgres
 
-db-create: ## Create database
-	$(CONSOLE) doctrine:database:create --if-not-exists
+db-create: ## Create database (bypasses pgbouncer via DATABASE_DIRECT_URL)
+	$(PHP_CONT) sh -c "DATABASE_URL=\"\$$DATABASE_DIRECT_URL\" php bin/console doctrine:database:create --if-not-exists"
 
-db-drop: ## Drop database
-	$(CONSOLE) doctrine:database:drop --force --if-exists
+db-drop: ## Drop database (bypasses pgbouncer via DATABASE_DIRECT_URL)
+	$(PHP_CONT) sh -c "DATABASE_URL=\"\$$DATABASE_DIRECT_URL\" php bin/console doctrine:database:drop --force --if-exists"
 
 db-reset: db-drop db-create sf-migrate ## Drop, create, and migrate database
 

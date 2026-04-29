@@ -56,7 +56,19 @@ final class DeleteSourceController
             return new RedirectResponse($this->urlGenerator->generate('app_sources'));
         }
 
-        $this->sourceRepository->remove($source, flush: true);
+        try {
+            $this->sourceRepository->remove($source, flush: true);
+        } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException) {
+            $this->controller->addFlash('error', 'Cannot delete source: it still has articles. Remove the articles first.');
+
+            if ($isHtmx) {
+                return new Response('', Response::HTTP_OK, [
+                    'HX-Redirect' => $this->urlGenerator->generate('app_sources'),
+                ]);
+            }
+
+            return new RedirectResponse($this->urlGenerator->generate('app_sources'));
+        }
 
         if ($isHtmx) {
             return new Response('');

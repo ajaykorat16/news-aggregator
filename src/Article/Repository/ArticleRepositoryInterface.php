@@ -108,4 +108,11 @@ interface ArticleRepositoryInterface
      * @return array{total: int, scored: int, unscored: int}
      */
     public function getSentimentStats(): array;
+
+    public function remove(Article $article, bool $flush = false): void;
+
+    /**
+     * @param list<int> $ids
+     */
+    public function removeByIds(array $ids): void;
 }

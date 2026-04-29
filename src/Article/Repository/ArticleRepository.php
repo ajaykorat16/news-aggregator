@@ -9,6 +9,7 @@ use App\User\Entity\User;
 use App\User\Entity\UserArticleBookmark;
 use App\User\Entity\UserArticleRead;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -465,6 +466,62 @@ final class ArticleRepository extends ServiceEntityRepository implements Article
             'scored' => (int) $result['scored'],
             'unscored' => (int) $result['unscored'],
         ];
+    }
+
+    public function remove(Article $article, bool $flush = false): void
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $articleId = $article->getId();
+
+        $conn->executeStatement('DELETE FROM user_article_read WHERE article_id = :id', [
+            'id' => $articleId,
+        ]);
+        $conn->executeStatement('DELETE FROM user_article_bookmark WHERE article_id = :id', [
+            'id' => $articleId,
+        ]);
+
+        $this->getEntityManager()->remove($article);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function removeByIds(array $ids): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+
+        $conn->executeStatement(
+            'DELETE FROM user_article_read WHERE article_id IN (:ids)',
+            [
+                'ids' => $ids,
+            ],
+            [
+                'ids' => ArrayParameterType::INTEGER,
+            ],
+        );
+        $conn->executeStatement(
+            'DELETE FROM user_article_bookmark WHERE article_id IN (:ids)',
+            [
+                'ids' => $ids,
+            ],
+            [
+                'ids' => ArrayParameterType::INTEGER,
+            ],
+        );
+        $conn->executeStatement(
+            'DELETE FROM article WHERE id IN (:ids)',
+            [
+                'ids' => $ids,
+            ],
+            [
+                'ids' => ArrayParameterType::INTEGER,
+            ],
+        );
     }
 
     private function applySentimentOrdering(QueryBuilder $qb, ?int $sentimentSlider): void

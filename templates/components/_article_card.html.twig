@@ -13,6 +13,7 @@
 >
     <div class="card-body p-4">
         <div class="flex items-start gap-2">
+            <input type="checkbox" name="article_ids[]" value="{{ article.id }}" class="article-select-checkbox checkbox checkbox-sm mt-1">
             <div class="flex-1 min-w-0">
                 <h3 class="card-title text-base">
                     <a href="{{ article.url }}" target="_blank" rel="noopener" class="link link-hover article-link" data-article-id="{{ article.id }}" data-lang-title>
@@ -75,6 +76,12 @@
             {% else %}
                 <a href="{{ article.url }}" target="_blank" rel="noopener" class="btn btn-xs btn-ghost text-info">Read on source →</a>
             {% endif %}
+            <button hx-post="{{ path('app_article_delete', {id: article.id}) }}"
+                    hx-headers='{"X-CSRF-Token": "{{ csrf_token('delete_article') }}"}'
+                    hx-confirm="Delete this article?"
+                    hx-target="closest [data-article-id]"
+                    hx-swap="outerHTML swap:300ms"
+                    class="btn btn-xs btn-ghost text-error ml-auto">Delete</button>
         </div>
     </div>
 </div>

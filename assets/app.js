@@ -17,3 +17,4 @@ import './js/inline-reader.js';
 import './js/sidebar-collapse.js';
 import './js/source-filter.js';
 import './js/sentiment-slider.js';
+import './js/bulk-delete.js';

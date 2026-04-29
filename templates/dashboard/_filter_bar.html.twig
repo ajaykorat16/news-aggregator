@@ -34,6 +34,20 @@
         hx-indicator="#feed-loader"
         hx-headers='{"X-CSRF-Token": "{{ csrf_token('mark_all_read') }}"}'
         class="btn btn-sm btn-ghost">Mark All Read</button>
+<label class="flex items-center gap-1 cursor-pointer">
+    <input type="checkbox" id="select-all-checkbox" class="checkbox checkbox-sm">
+    <span class="text-sm">All</span>
+</label>
+<button id="bulk-delete-btn"
+        hx-post="{{ path('app_articles_bulk_delete') }}"
+        hx-include="input[name='article_ids[]']:checked"
+        hx-headers='{"X-CSRF-Token": "{{ csrf_token('bulk_delete_articles') }}"}'
+        hx-confirm="Delete selected articles?"
+        hx-target="#article-feed"
+        hx-swap="innerHTML"
+        hx-indicator="#feed-loader"
+        disabled
+        class="btn btn-sm btn-error btn-outline">Remove Selected</button>
 <span class="border-l border-base-300 pl-3 flex-1">
     <input id="article-filter" type="text" placeholder="Filter this page..." class="input input-bordered input-sm w-full" />
 </span>

@@ -29,12 +29,12 @@ final readonly class LaminasFeedParserService implements FeedParserServiceInterf
             }
 
             $contentRaw = $entry->getContent();
-            if ($contentRaw === '') {
+            if ($contentRaw === null || $contentRaw === '') {
                 $contentRaw = $entry->getDescription();
             }
 
-            $contentText = $contentRaw !== '' ? $this->stripHtml($contentRaw) : null;
-            $contentRawOrNull = $contentRaw !== '' ? $contentRaw : null;
+            $contentText = ($contentRaw !== null && $contentRaw !== '') ? $this->stripHtml($contentRaw) : null;
+            $contentRawOrNull = ($contentRaw !== null && $contentRaw !== '') ? $contentRaw : null;
 
             $publishedAt = null;
             $dateModified = $entry->getDateModified();

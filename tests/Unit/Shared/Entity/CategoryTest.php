@@ -37,4 +37,12 @@ final class CategoryTest extends TestCase
 
         self::assertSame('#FF0000', $category->getColor());
     }
+
+    public function testSetName(): void
+    {
+        $category = new Category('Tech', 'tech', 10, '#000000');
+        $category->setName('Technology');
+
+        self::assertSame('Technology', $category->getName());
+    }
 }

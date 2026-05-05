@@ -29,7 +29,7 @@ class Source
     private ?string $siteUrl = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Category $category;
 
     #[ORM\Column]

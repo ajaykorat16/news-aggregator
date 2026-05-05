@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+{% block title %}Edit Category{% endblock %}
+{% block body %}
+    <h1 class="text-2xl font-bold mb-6">Edit Category</h1>
+
+    {% if error is defined and error %}
+        <div class="alert alert-error mb-4 max-w-lg">
+            <span>{{ error }}</span>
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{{ path('app_categories_edit', {id: category.id}) }}" class="max-w-lg flex flex-col gap-4">
+        <input type="hidden" name="_token" value="{{ csrf_token('edit_category') }}">
+
+        <div class="form-control">
+            <label class="label" for="name">
+                <span class="label-text">Name</span>
+            </label>
+            <input type="text" id="name" name="name" class="input input-bordered" required value="{{ formData.name ?? category.name }}">
+        </div>
+
+        <div class="form-control">
+            <label class="label">
+                <span class="label-text">Slug</span>
+            </label>
+            <span class="text-base-content/70 px-1">{{ category.slug }}</span>
+            <span class="label-text-alt text-xs opacity-70">Slug cannot be changed after creation</span>
+        </div>
+
+        <div class="form-control">
+            <label class="label" for="weight">
+                <span class="label-text">Weight</span>
+            </label>
+            <input type="number" id="weight" name="weight" class="input input-bordered" required value="{{ formData.weight is defined ? formData.weight : category.weight }}">
+            <span class="label-text-alt text-xs opacity-70">Lower weight appears first in sorting</span>
+        </div>
+
+        <div class="form-control">
+            <label class="label" for="color">
+                <span class="label-text">Color</span>
+            </label>
+            <input type="color" id="color" name="color" class="input input-bordered h-12 w-24 p-1 cursor-pointer" value="{{ formData.color ?? category.color }}">
+        </div>
+
+        <div class="form-control">
+            <label class="label" for="fetch_interval_minutes">
+                <span class="label-text">Fetch Interval (optional, 5-1440 minutes)</span>
+            </label>
+            <input type="number" id="fetch_interval_minutes" name="fetch_interval_minutes" class="input input-bordered" min="5" max="1440" placeholder="Use default" value="{{ formData.fetch_interval_minutes is defined ? formData.fetch_interval_minutes : category.fetchIntervalMinutes }}">
+        </div>
+
+        <div class="flex gap-2 mt-2">
+            <button type="submit" class="btn btn-primary">Update Category</button>
+            <a href="{{ path('app_categories') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+{% endblock %}

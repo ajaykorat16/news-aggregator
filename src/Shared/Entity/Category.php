@@ -71,6 +71,11 @@ class Category
         return $this->color;
     }
 
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
+
     public function setColor(string $color): void
     {
         $this->color = $color;

@@ -44,14 +44,14 @@
                 <tbody>
                     {% for source in sources %}
                         <tr>
-                            <td>
-                                <div class="font-bold">{{ source.name }}</div>
-                                <div class="text-xs text-base-content/50 truncate max-w-xs">{{ source.feedUrl }}</div>
+                            <td class="max-w-xs">
+                                <div class="font-bold truncate" title="{{ source.name }}">{{ source.name }}</div>
+                                <div class="text-xs text-base-content/50 truncate">{{ source.feedUrl }}</div>
                             </td>
                             <td>
-                                <span class="badge badge-sm" style="background-color: {{ source.category.color }}; color: {{ source.category.color|contrast_text_color }};">
+                                <div class="text-xs truncate w-fit max-w-[120px] px-1 rounded-lg" style="background-color: {{ source.category.color }}; color: {{ source.category.color|contrast_text_color }};" title="{{ source.category.name }}">
                                     {{ source.category.name }}
-                                </span>
+                                </div>
                             </td>
                             <td>
                                 {% include 'components/_source_health_badge.html.twig' with { health: source.healthStatus.value } %}

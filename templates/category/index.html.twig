@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Categories — News Aggregator{% endblock %}
+
+{% block body %}
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Categories</h1>
+        <a href="{{ path('app_categories_new') }}" class="btn btn-primary btn-sm">New Category</a>
+    </div>
+
+    {% if categories is empty %}
+        {% include 'components/_empty_state.html.twig' with {
+            message: 'No categories configured yet.',
+            action_label: 'Add Category',
+            action_url: path('app_categories_new')
+        } %}
+    {% else %}
+        <div class="overflow-x-auto">
+            <table class="table table-zebra">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Color</th>
+                        <th>Weight</th>
+                        <th>Fetch Interval</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <td class="font-bold">{{ category.name }}</td>
+                            <td><code class="text-xs">{{ category.slug }}</code></td>
+                            <td>
+                                <span class="badge badge-sm" style="background-color: {{ category.color }}; color: {{ category.color|contrast_text_color }};">
+                                    {{ category.color }}
+                                </span>
+                            </td>
+                            <td>{{ category.weight }}</td>
+                            <td>
+                                {% if category.fetchIntervalMinutes %}
+                                    <span class="badge badge-info badge-sm">{{ category.fetchIntervalMinutes }}m</span>
+                                {% else %}
+                                    <span class="text-base-content/30">default</span>
+                                {% endif %}
+                            </td>
+                            <td class="flex gap-1">
+                                <a href="{{ path('app_categories_edit', {id: category.id}) }}" class="btn btn-ghost btn-xs">Edit</a>
+                                <button hx-post="{{ path('app_categories_delete', {id: category.id}) }}"
+                                        hx-headers='{"X-CSRF-Token": "{{ csrf_token('delete_category') }}"}'
+                                        hx-confirm="Delete this category?"
+                                        hx-target="closest tr"
+                                        hx-swap="outerHTML swap:300ms"
+                                        class="btn btn-ghost btn-xs text-error">Delete</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

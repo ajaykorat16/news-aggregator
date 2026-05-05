@@ -24,7 +24,7 @@ class NotificationLog
     private AlertRule $alertRule;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Article $article;
 
     #[ORM\Column(length: 50)]

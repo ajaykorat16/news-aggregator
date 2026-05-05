@@ -51,11 +51,11 @@ class Article
     private ?float $sentimentScore = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private Source $source;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Category $category = null;
 
     #[ORM\Column(length: 20, nullable: true, enumType: EnrichmentMethod::class)]

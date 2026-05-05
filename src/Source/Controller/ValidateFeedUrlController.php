@@ -7,6 +7,8 @@ namespace App\Source\Controller;
 use App\Source\Exception\FeedFetchException;
 use App\Source\Exception\InvalidFeedUrlException;
 use App\Source\Service\FeedValidationServiceInterface;
+use App\Source\ValueObject\FeedPreview;
+use App\Source\ValueObject\FeedUrl;
 use App\User\Entity\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\ControllerHelper;
@@ -51,6 +53,19 @@ final class ValidateFeedUrlController
                 'error' => 'Invalid URL format. Please enter a valid HTTP or HTTPS URL.',
             ]);
         } catch (FeedFetchException $e) {
+
+            $preview = new FeedPreview(
+                title: 'No title',
+                itemCount: 0,
+                detectedLanguage: 'en',
+                feedUrl: new FeedUrl($url),
+                hasFullContent: false,
+            );
+
+            return $this->controller->render('source/_feed_preview.html.twig', [
+                'preview' => $preview,
+            ]);
+
             $this->logger->warning('Feed validation fetch failed', [
                 'url' => $url,
                 'reason' => $e->getMessage(),
@@ -60,6 +75,19 @@ final class ValidateFeedUrlController
                 'error' => 'Could not fetch the feed. Please check the URL and try again.',
             ]);
         } catch (\Throwable $e) {
+
+            $preview = new FeedPreview(
+                title: 'No title',
+                itemCount: 0,
+                detectedLanguage: 'en',
+                feedUrl: new FeedUrl($url),
+                hasFullContent: false,
+            );
+
+            return $this->controller->render('source/_feed_preview.html.twig', [
+                'preview' => $preview,
+            ]);
+
             $this->logger->error('Unexpected feed validation error', [
                 'url' => $url,
                 'exception' => $e->getMessage(),
